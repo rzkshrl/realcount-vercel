@@ -96,7 +96,7 @@ footer{padding:var(--s7) 0 var(--s6);color:var(--mut)}
 <div class="grid" id="grid"></div>
 </div></section>
 </main>
-<footer><div class="wrap"><p>Data dimuat ulang otomatis setiap 45 detik.</p></div></footer>
+<footer><div class="wrap"><p>Data dimuat ulang otomatis.</p></div></footer>
 <script>
 const $=id=>document.getElementById(id),nf=n=>n==null?'-':n.toLocaleString('id-ID'),
 pf=n=>n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
@@ -151,7 +151,9 @@ function card(d){
  return c}
 $('fk').onchange=$('fs').onchange=render;
 $('rs').onclick=()=>{$('fk').value='';$('fs').value='';render()};
-load();setInterval(()=>{if(!document.hidden)load()},45000);
+const GAS=!!(window.google&&google.script&&google.script.run);
+load();setInterval(()=>{if(GAS||!document.hidden)load()},GAS?20000:45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
 </script>
 </body>
 </html>
