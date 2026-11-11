@@ -1,5 +1,4 @@
 {
-  "name": "realcount-pilkades-wonogiri-2026",
-  "private": true,
-  "dependencies": { "googleapis": "^140.0.0" }
+  "name": "quickcount-pilkades-wonogiri-2026",
+  "private": true
 }
