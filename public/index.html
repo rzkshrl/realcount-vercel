@@ -6,94 +6,113 @@
 <meta name="description" content="Quick Count sementara Pilkades Serentak Kabupaten Wonogiri 2026. Bukan hasil resmi.">
 <title>Quick Count Pilkades Serentak Wonogiri 2026</title>
 <style>
-:root{color-scheme:light;--bg:#f6f4ef;--card:#fff;--ink:#1d1b17;--mut:#6a665e;--line:rgba(29,27,23,.14);--acc:#1456c8;--acc-t:rgba(20,86,200,.3);--oth:rgba(29,27,23,.5);--r-sm:8px;--r-lg:12px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px}
+:root{color-scheme:light;--bg:#f5f4ef;--card:#fff;--ink:#1d1b17;--mut:#645f57;--line:rgba(29,27,23,.14);--acc:#1456c8;--accT:#eaf0fc;--fin:#16794a;--finT:#e2f2e9;--sem:#8a5206;--semB:#e8a33d;--semT:#fdf0d8;--belT:#ecebe7;--r-sm:8px;--r-lg:12px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
+--c0:#1456c8;--c1:#c2410c;--c2:#0b7285;--c3:#be185d;--c4:#5c6b12}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:1200px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
 .skip{position:absolute;left:-999px;top:8px}
 .skip:focus{left:16px;z-index:5;background:var(--ink);color:#fff;padding:var(--s2) var(--s4);border-radius:var(--r-sm)}
-:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-header{border-bottom:1px solid var(--line);padding:var(--s5) 0}
-h1{margin:0;font-size:clamp(24px,3.2vw,32px);line-height:1.2;letter-spacing:-.02em;font-weight:600}
+:focus-visible{outline:3px solid var(--semB);outline-offset:2px}
+.band{background:var(--acc);color:#fff;padding:var(--s6) 0}
+h1{margin:0;font-size:clamp(24px,3.4vw,34px);line-height:1.2;letter-spacing:-.02em;font-weight:600;max-width:20ch}
 h2{margin:0 0 var(--s5);font-size:clamp(20px,2.4vw,24px);line-height:1.3;letter-spacing:-.01em;font-weight:600}
-.meta{margin:var(--s2) 0 0;color:var(--mut)}
+.live{display:inline-flex;align-items:center;gap:var(--s2);margin-top:var(--s4);padding:4px var(--s4) 4px var(--s3);border:1px solid rgba(255,255,255,.4);border-radius:99px;font-size:13px;font-weight:500}
+.dot{width:10px;height:10px;border-radius:50%;background:#6ee7a1;animation:ping 1.8s ease-out infinite}
+.live.busy .dot{background:none;border:2px solid #fff;border-top-color:transparent;animation:spin .7s linear infinite}
 section{padding-top:var(--s7)}
-.notice{margin-top:var(--s5);background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s4) var(--s5)}
+.notice{display:flex;gap:var(--s3);margin-top:var(--s5);background:var(--semT);border:1px solid var(--semB);border-radius:var(--r-lg);padding:var(--s4) var(--s5)}
+.notice svg{flex:none;margin-top:3px}
 .notice p{margin:0;max-width:80ch}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s5)}
-.stat b{display:block;font-size:clamp(28px,4vw,38px);line-height:1.1;letter-spacing:-.02em;font-weight:600}
-.stat span{color:var(--mut);font-size:13px;font-weight:500}
-.seg{display:flex;height:16px;border-radius:99px;overflow:hidden;background:var(--line)}
-.seg i{display:block;height:100%;transition:width .6s ease}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s4)}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s4) var(--s5)}
+.stat b{display:block;font-size:clamp(28px,4vw,38px);line-height:1.15;letter-spacing:-.02em;font-weight:600}
+.stat span{font-size:13px;font-weight:500;color:var(--mut)}
+.stat span::before{content:"";display:inline-block;width:10px;height:10px;margin-right:var(--s2);border-radius:50%;background:var(--c)}
+.seg{display:flex;height:16px;border-radius:99px;overflow:hidden;background:var(--belT)}
+.seg i{display:block;height:100%;width:0;transition:width .7s ease}
 #sb{margin-top:var(--s5)}
 .lg{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);margin:var(--s3) 0 0;padding:0;list-style:none}
 .lg li::before{content:"";display:inline-block;width:10px;height:10px;margin-right:var(--s2);border-radius:50%;background:var(--c)}
 .kl{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:var(--s3);margin:0;padding:0;list-style:none}
 .kr{display:grid;grid-template-columns:1fr auto;gap:var(--s2);width:100%;min-height:44px;padding:var(--s3) var(--s4);background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);font:inherit;color:inherit;text-align:left;cursor:pointer;transition:transform .15s,background .15s}
-.kr:hover{transform:translateY(-2px);background:#fbfaf7}
-.kr:active{transform:translateY(0)}
-.kr[aria-pressed=true]{border-color:var(--acc);font-weight:600}
+.kr:hover{transform:translateY(-2px);background:var(--accT)}
+.kr:active{transform:none}
+.kr[aria-pressed=true]{border-color:var(--acc);background:var(--accT);font-weight:600}
 .kr .seg{grid-column:1/-1;height:8px}
 .kr small{color:var(--mut);font-size:13px;font-weight:500;align-self:center}
-.bar{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s4);margin-bottom:var(--s5)}
-.bar label{display:grid;gap:4px;font-size:13px;font-weight:500;color:var(--mut)}
-select,.btn{min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);font:inherit;color:var(--ink);background:var(--card);padding:0 var(--s4)}
+.tools{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s4);margin-bottom:var(--s4)}
+.tools label{display:grid;gap:4px;font-size:13px;font-weight:500;color:var(--mut)}
+select,input,.btn{min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);font:inherit;color:var(--ink);background:var(--card);padding:0 var(--s4)}
+input{min-width:min(100%,260px)}
 .btn{padding:0 var(--s5);border-color:var(--ink);font-weight:500;cursor:pointer;transition:background .15s,transform .1s}
 .btn:hover{background:rgba(29,27,23,.06)}
 .btn:active{transform:translateY(1px)}
+.pills{display:flex;flex-wrap:wrap;gap:var(--s2);margin-bottom:var(--s5)}
+.pill{min-height:44px;padding:0 var(--s4);border:1px solid var(--line);border-radius:99px;background:var(--card);font:inherit;font-weight:500;cursor:pointer;transition:transform .15s,background .15s}
+.pill:hover{transform:translateY(-2px)}
+.pill[aria-pressed=true]{background:var(--ink);border-color:var(--ink);color:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:var(--s5)}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s5)}
 .ch{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--s3);margin-bottom:var(--s3)}
 .ch h3{margin:0;font-size:18px;line-height:1.3;font-weight:600}
 .ch p{margin:0;color:var(--mut)}
-.chip{white-space:nowrap;border:1px solid var(--line);border-radius:99px;padding:2px var(--s3);font-size:13px;font-weight:500}
-.chip.Final{color:var(--acc);border-color:var(--acc)}
+.chip{white-space:nowrap;border-radius:99px;padding:2px var(--s3);font-size:13px;font-weight:600;background:var(--belT);color:var(--mut)}
+.chip.Final{background:var(--finT);color:var(--fin)}
+.chip.Sementara{background:var(--semT);color:var(--sem)}
 .cal{display:grid;grid-template-columns:56px 1fr;gap:var(--s3);padding:var(--s3) 0;border-top:1px solid var(--line)}
-.ph{position:relative;width:56px;height:56px;border-radius:var(--r-sm);background:var(--line);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600}
+.ph{position:relative;width:56px;height:56px;border-radius:var(--r-sm);background:var(--belT);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.no{position:absolute;left:0;top:0;z-index:1;background:var(--ink);color:#fff;font-size:13px;font-weight:600;line-height:1.4;padding:0 6px;border-radius:0 0 var(--r-sm) 0}
+.no{position:absolute;left:0;top:0;z-index:1;background:var(--c);color:#fff;font-size:13px;font-weight:600;line-height:1.4;padding:0 6px;border-radius:0 0 var(--r-sm) 0}
 .nm{font-weight:600}
+.tag{margin-left:var(--s2);padding:1px var(--s2);border-radius:99px;background:var(--finT);color:var(--fin);font-size:13px;font-weight:600}
 .pt{margin-left:var(--s2);color:var(--mut);font-size:13px;font-weight:500}
 .vt{display:flex;justify-content:space-between;gap:var(--s2)}
 .cal .seg{height:8px;margin:6px 0}
-.cal .seg i{background:var(--oth)}
-.cal.lead .seg i{background:var(--acc)}
+.cal .seg i{background:var(--c)}
 .gap{margin:var(--s2) 0 0;color:var(--mut)}
 .empty{color:var(--mut)}
 footer{padding:var(--s7) 0 var(--s6);color:var(--mut)}
+.sk{background:rgba(29,27,23,.08);border-radius:var(--r-lg);animation:pulse 1.4s ease-in-out infinite}
 .enter{animation:in .5s ease both}
 @keyframes in{from{opacity:0;transform:translateY(8px)}}
-@media (max-width:640px){.stats{grid-template-columns:1fr;gap:var(--s3)}.bar>*{width:100%}select{width:100%}}
+@keyframes pulse{50%{opacity:.45}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(110,231,161,.7)}80%,100%{box-shadow:0 0 0 8px rgba(110,231,161,0)}}
+@media (max-width:640px){.stats{grid-template-columns:1fr}.tools>*,.tools input,select{width:100%}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <a class="skip" href="#main">Lewati ke konten</a>
-<header class="enter"><div class="wrap">
+<header class="band enter"><div class="wrap">
 <h1>Quick Count Pilkades Serentak Wonogiri 2026</h1>
-<p class="meta" id="upd">Memuat data...</p>
-<div class="notice" role="note"><p><b>Perhatian:</b> Quick Count ini adalah penghitungan cepat sementara berdasarkan laporan petugas kecamatan, dengan tingkat akurasi sekitar 75%. Angka dapat berbeda dari hasil sebenarnya dan <b>bukan hasil resmi</b>. Hasil resmi hanya yang ditetapkan oleh Panitia Pemilihan Kepala Desa berdasarkan berita acara.</p></div>
+<div class="live busy" id="live" role="status"><span class="dot"></span><span id="lt">Memuat data...</span></div>
 </div></header>
 <main id="main">
+<div class="wrap"><div class="notice" role="note">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8a5206" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 17h.01"/></svg>
+<p><b>Perhatian:</b> Quick Count ini adalah penghitungan cepat sementara berdasarkan laporan petugas kecamatan, dengan tingkat akurasi sekitar 75%. Angka dapat berbeda dari hasil sebenarnya dan <b>bukan hasil resmi</b>. Hasil resmi hanya yang ditetapkan oleh Panitia Pemilihan Kepala Desa berdasarkan berita acara.</p></div></div>
 <section><div class="wrap">
 <h2>Ringkasan</h2>
-<div class="stats enter" id="kpi"></div>
+<div class="stats" id="kpi"><div class="sk" style="height:96px"></div><div class="sk" style="height:96px"></div><div class="sk" style="height:96px"></div></div>
 <div class="seg" id="sb" aria-hidden="true"></div>
 <ul class="lg" id="lg"></ul>
 </div></section>
 <section><div class="wrap">
 <h2>Progres per kecamatan</h2>
-<ul class="kl" id="kl"></ul>
+<ul class="kl" id="kl"><li class="sk" style="height:68px"></li><li class="sk" style="height:68px"></li><li class="sk" style="height:68px"></li></ul>
 </div></section>
 <section id="hasil"><div class="wrap">
 <h2>Perolehan per desa</h2>
-<div class="bar">
+<div class="tools">
+<label>Cari desa atau calon<input id="q" type="search" placeholder="Ketik nama..."></label>
 <label>Kecamatan<select id="fk"><option value="">Semua kecamatan</option></select></label>
-<label>Status<select id="fs"><option value="">Semua status</option><option>Belum masuk</option><option>Sementara</option><option>Final</option></select></label>
 <button class="btn" id="rs" type="button" hidden>Tampilkan semua desa</button>
 </div>
-<div class="grid" id="grid"></div>
+<div class="pills" id="sp" role="group" aria-label="Filter status"></div>
+<div class="grid" id="grid"><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div></div>
 </div></section>
 </main>
 <footer><div class="wrap"><p>Data dimuat ulang otomatis.</p></div></footer>
@@ -101,23 +120,29 @@ footer{padding:var(--s7) 0 var(--s6);color:var(--mut)}
 const $=id=>document.getElementById(id),nf=n=>n==null?'-':n.toLocaleString('id-ID'),
 pf=n=>n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-const COL={Final:'var(--acc)',Sementara:'var(--acc-t)','Belum masuk':'rgba(29,27,23,.2)'};
-let D=null;
+const COL={Final:'var(--fin)',Sementara:'var(--semB)','Belum masuk':'#d9d7d0'};
+let D=null,FS='';
 const getData=()=>window.google&&google.script&&google.script.run
  ?new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no).getDashboardData())
  :fetch('/api/data').then(r=>{if(!r.ok)throw 0;return r.json()});
-function load(){getData().then(d=>{D=d;init();render()}).catch(()=>{$('upd').textContent='Gagal memuat data. Mencoba lagi...'})}
+function load(){$('live').classList.add('busy');
+ getData().then(d=>{D=d;init();render()})
+ .catch(()=>{if(D)$('lt').textContent='Gagal memperbarui, mencoba lagi...';else showErr()})
+ .finally(()=>$('live').classList.remove('busy'))}
+function showErr(){$('lt').textContent='Gagal memuat data';
+ const b=el('button','btn','Coba lagi');b.type='button';b.onclick=load;
+ $('grid').replaceChildren(el('p','empty','Data belum bisa dimuat. Periksa sinyal internet kamu.'),b)}
 function init(){const s=$('fk');if(s.options.length>1)return;
  [...new Set(D.desa.map(d=>d.kecamatan))].forEach(k=>{const o=el('option',null,k);o.value=k;s.append(o)})}
-function seg(parts,cls){const s=el('div','seg '+(cls||''));s.setAttribute('aria-hidden','true');
- parts.forEach(([p,c])=>{const i=el('i');i.style.width=p+'%';if(c)i.style.background=c;s.append(i)});return s}
+function seg(parts){const s=el('div','seg');s.setAttribute('aria-hidden','true');
+ parts.forEach(([p,c])=>{const i=el('i');if(c)i.style.background=c;s.append(i);requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=p+'%'))});return s}
 function render(){
- const ds=D.desa,fk=$('fk').value,fs=$('fs').value,T=ds.length||1;
+ const ds=D.desa,fk=$('fk').value,q=$('q').value.trim().toLowerCase(),T=ds.length||1;
  const cnt={Final:0,Sementara:0,'Belum masuk':0};ds.forEach(d=>cnt[d.status]=(cnt[d.status]||0)+1);
  const tot=ds.reduce((a,d)=>a+d.calon.reduce((b,c)=>b+(c.suara||0),0),0);
- $('upd').textContent=D.last?'Pembaruan terakhir '+new Date(D.last).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})+' WIB':'Belum ada data masuk';
- $('kpi').replaceChildren(...[[(cnt.Final+cnt.Sementara)+' dari '+ds.length,'Desa sudah melapor'],[cnt.Final,'Desa berstatus final'],[nf(tot),'Total suara masuk']]
-  .map(([b,s])=>{const k=el('div','stat');k.append(el('b',null,b),el('span',null,s));return k}));
+ $('lt').textContent=D.last?'Pembaruan terakhir '+new Date(D.last).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})+' WIB':'Belum ada data masuk';
+ $('kpi').replaceChildren(...[[(cnt.Final+cnt.Sementara)+' dari '+ds.length,'Desa sudah melapor','var(--acc)'],[cnt.Final,'Desa berstatus final','var(--fin)'],[nf(tot),'Total suara masuk','var(--c1)']]
+  .map(([b,s,c])=>{const k=el('div','stat');k.append(el('b',null,b),el('span',null,s));k.style.setProperty('--c',c);return k}));
  $('sb').replaceChildren(...seg(['Final','Sementara'].map(k=>[cnt[k]/T*100,COL[k]])).children);
  $('lg').replaceChildren(...Object.keys(COL).map(k=>{const li=el('li',null,k+': '+cnt[k]+' desa');li.style.setProperty('--c',COL[k]);return li}));
  const by={};ds.forEach(d=>{const x=by[d.kecamatan]=by[d.kecamatan]||{t:0,Final:0,Sementara:0};x.t++;if(x[d.status]!=null)x[d.status]++});
@@ -127,9 +152,11 @@ function render(){
    seg([[x.Final/x.t*100,COL.Final],[x.Sementara/x.t*100,COL.Sementara]]));
   b.onclick=()=>{const on=fk!==k;$('fk').value=on?k:'';render();if(on)$('hasil').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})};
   li.append(b);return li}));
- $('rs').hidden=!(fk||fs);
- const list=ds.filter(d=>(!fk||d.kecamatan===fk)&&(!fs||d.status===fs));
- $('grid').replaceChildren(...(list.length?list.map(card):[el('p','empty','Tidak ada desa pada filter ini.')]));
+ $('sp').replaceChildren(...[['','Semua',T],['Final','Final',cnt.Final],['Sementara','Sementara',cnt.Sementara],['Belum masuk','Belum masuk',cnt['Belum masuk']]]
+  .map(([v,l,n])=>{const b=el('button','pill',l+' ('+n+')');b.type='button';b.setAttribute('aria-pressed',String(FS===v));b.onclick=()=>{FS=v;render()};return b}));
+ $('rs').hidden=!(fk||FS||q);
+ const list=ds.filter(d=>(!fk||d.kecamatan===fk)&&(!FS||d.status===FS)&&(!q||d.desa.toLowerCase().includes(q)||d.calon.some(c=>c.nama.toLowerCase().includes(q))));
+ $('grid').replaceChildren(...(list.length?list.map(card):[el('p','empty','Tidak ada desa yang cocok. Coba ubah pencarian atau filter.')]));
 }
 function card(d){
  const c=el('article','card'),h=el('div','ch'),l=el('div');
@@ -137,20 +164,21 @@ function card(d){
  h.append(l,el('span','chip '+d.status.replace(' ','-'),d.status));c.append(h);
  const v=d.calon.map(x=>x.suara||0),sum=v.reduce((a,b)=>a+b,0),max=Math.max(0,...v);
  if(!d.calon.length)c.append(el('p','empty','Calon belum ditetapkan.'));
- d.calon.forEach(x=>{
-  const r=el('div','cal'+(max>0&&x.suara===max?' lead':'')),ph=el('div','ph');
+ d.calon.forEach((x,i)=>{
+  const lead=max>0&&x.suara===max,r=el('div','cal'),ph=el('div','ph');
+  r.style.setProperty('--c','var(--c'+(((parseInt(x.nomor_urut)||i+1)-1)%5)+')');
   ph.append(el('span','no',x.nomor_urut||'—'));
   ph.append(el('span',null,x.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()));
-  if(x.foto){const i=new Image();i.src=x.foto;i.alt='Foto '+x.nama;i.onerror=()=>i.remove();ph.append(i)}
-  const b=el('div'),n=el('div','nm',x.nama);if(x.petahana)n.append(el('span','pt','Petahana'));
+  if(x.foto){const im=new Image();im.src=x.foto;im.alt='Foto '+x.nama;im.onerror=()=>im.remove();ph.append(im)}
+  const b=el('div'),n=el('div','nm',x.nama);if(x.petahana)n.append(el('span','pt','Petahana'));if(lead)n.append(el('span','tag','Unggul'));
   const pct=sum>0&&x.suara!=null?x.suara/sum*100:0,t=el('div','vt');
   t.append(el('span',null,nf(x.suara)+' suara'),el('span',null,sum>0?pf(pct):'-'));
   b.append(n,seg([[pct]]),t);r.append(ph,b);c.append(r)});
  const s=[...v].sort((a,b)=>b-a);
  if(d.calon.length>1&&sum>0)c.append(el('p','gap',s[0]===s[1]?'Dua calon teratas sama suara.':'Selisih '+nf(s[0]-s[1])+' suara dari urutan kedua.'));
  return c}
-$('fk').onchange=$('fs').onchange=render;
-$('rs').onclick=()=>{$('fk').value='';$('fs').value='';render()};
+$('fk').onchange=$('q').oninput=render;
+$('rs').onclick=()=>{$('fk').value='';$('q').value='';FS='';render()};
 const GAS=!!(window.google&&google.script&&google.script.run);
 load();setInterval(()=>{if(GAS||!document.hidden)load()},GAS?20000:45000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
