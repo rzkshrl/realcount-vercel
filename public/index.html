@@ -122,9 +122,7 @@ pf=n=>n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2}
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const COL={Final:'var(--fin)',Sementara:'var(--semB)','Belum masuk':'#d9d7d0'};
 let D=null,FS='';
-const getData=()=>window.google&&google.script&&google.script.run
- ?new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no).getDashboardData())
- :fetch('/api/data').then(r=>{if(!r.ok)throw 0;return r.json()});
+const getData=()=>fetch('/api/data').then(r=>{if(!r.ok)throw 0;return r.json()});
 function load(){$('live').classList.add('busy');
  getData().then(d=>{D=d;init();render()})
  .catch(()=>{if(D)$('lt').textContent='Gagal memperbarui, mencoba lagi...';else showErr()})
@@ -179,8 +177,7 @@ function card(d){
  return c}
 $('fk').onchange=$('q').oninput=render;
 $('rs').onclick=()=>{$('fk').value='';$('q').value='';FS='';render()};
-const GAS=!!(window.google&&google.script&&google.script.run);
-load();setInterval(()=>{if(GAS||!document.hidden)load()},GAS?20000:45000);
+load();setInterval(()=>{if(!document.hidden)load()},45000+Math.random()*8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
 </script>
 </body>

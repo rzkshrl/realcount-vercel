@@ -7,6 +7,10 @@ module.exports = async (req, res) => {
     const r = await fetch(u, { redirect: 'follow' });
     const d = await r.json();
     if (d.error) throw new Error(d.error);
+    // foto Drive lewat proxy /api/foto (di-cache CDN)
+    (d.desa || []).forEach(x => x.calon.forEach(c => {
+      c.foto = String(c.foto || '').replace(/^https:\/\/drive\.google\.com\/thumbnail\?id=([\w-]+).*$/, '/api/foto?id=$1');
+    }));
     res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
     res.status(200).json(d);
   } catch (e) {
