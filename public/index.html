@@ -67,7 +67,6 @@ input{min-width:min(100%,260px)}
 .ph{border:0;padding:0;font:inherit}
 button.ph{cursor:zoom-in;transition:filter .15s}
 button.ph:hover{filter:brightness(.94)}
-button.ph::after{content:"+";position:absolute;right:4px;bottom:4px;width:20px;height:20px;border-radius:50%;background:rgba(29,27,23,.78);color:#fff;font-size:14px;font-weight:600;line-height:20px;text-align:center}
 dialog{border:0;border-radius:var(--r-lg);padding:var(--s4);max-width:min(92vw,520px);background:var(--card);color:var(--ink)}
 dialog::backdrop{background:rgba(29,27,23,.72)}
 body:has(dialog[open]){overflow:hidden}
@@ -84,6 +83,23 @@ body:has(dialog[open]){overflow:hidden}
 .gap{margin:var(--s2) 0 0;color:var(--mut)}
 .empty{color:var(--mut)}
 footer{padding:var(--s7) 0 var(--s6);color:var(--mut)}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:var(--s5)}
+.chart{background:var(--card);border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s5)}
+.chart.wide{grid-column:1/-1}
+.chart h3{margin:0 0 var(--s4);font-size:18px;line-height:1.3;font-weight:600}
+.chart label{display:grid;gap:4px;margin-bottom:var(--s4);font-size:13px;font-weight:500;color:var(--mut)}
+.chart select{width:100%}
+.dn{display:flex;align-items:center;gap:var(--s5);flex-wrap:wrap}
+.dn svg{width:160px;height:160px;flex:none}
+.dn circle{transition:stroke-dasharray .7s ease}
+.dl{list-style:none;margin:0;padding:0;display:grid;gap:var(--s2);flex:1;min-width:190px}
+.dl li{display:flex;gap:var(--s2);align-items:baseline}
+.dl li::before{content:"";flex:none;width:10px;height:10px;border-radius:50%;background:var(--c)}
+.dl .v{margin-left:auto;font-variant-numeric:tabular-nums;text-align:right}
+.hr{display:grid;grid-template-columns:minmax(96px,150px) 1fr auto;gap:var(--s3);align-items:center;padding:6px 0}
+.hr .v{font-variant-numeric:tabular-nums}
+.hbar{height:10px;border-radius:99px;background:var(--belT);overflow:hidden}
+.hbar i{display:block;height:100%;width:0;background:var(--acc);border-radius:99px;transition:width .7s ease}
 .sk{background:rgba(29,27,23,.08);border-radius:var(--r-lg);animation:pulse 1.4s ease-in-out infinite}
 .enter{animation:in .5s ease both}
 @keyframes in{from{opacity:0;transform:translateY(8px)}}
@@ -107,8 +123,14 @@ footer{padding:var(--s7) 0 var(--s6);color:var(--mut)}
 <section><div class="wrap">
 <h2>Ringkasan</h2>
 <div class="stats" id="kpi"><div class="sk" style="height:96px"></div><div class="sk" style="height:96px"></div><div class="sk" style="height:96px"></div></div>
-<div class="seg" id="sb" aria-hidden="true"></div>
-<ul class="lg" id="lg"></ul>
+</div></section>
+<section><div class="wrap">
+<h2>Grafik</h2>
+<div class="charts">
+<article class="chart"><h3>Status desa</h3><div class="dn" id="cs"><div class="sk" style="height:160px;width:100%"></div></div></article>
+<article class="chart"><h3>Perolehan per desa</h3><label>Pilih desa<select id="cdsel"></select></label><div class="dn" id="cdv"><div class="sk" style="height:160px;width:100%"></div></div></article>
+<article class="chart wide"><h3>Suara masuk per kecamatan</h3><div id="ck"><div class="sk" style="height:200px"></div></div></article>
+</div>
 </div></section>
 <section><div class="wrap">
 <h2>Progres per kecamatan</h2>
@@ -137,10 +159,11 @@ const $=id=>document.getElementById(id),nf=n=>n==null?'-':n.toLocaleString('id-I
 pf=n=>n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 const COL={Final:'var(--fin)',Sementara:'var(--semB)','Belum masuk':'#d9d7d0'};
-let D=null,FS='';
+let D=null,FS='',FIRST=true;
+const grow=fn=>FIRST?requestAnimationFrame(()=>requestAnimationFrame(fn)):fn();   // animasi tumbuh hanya saat pemuatan pertama
 const getData=()=>fetch('/api/data').then(r=>{if(!r.ok)throw 0;return r.json()});
 function load(){$('live').classList.add('busy');
- getData().then(d=>{D=d;init();render()})
+ getData().then(d=>{D=d;init();render();FIRST=false})
  .catch(()=>{if(D)$('lt').textContent='Gagal memperbarui, mencoba lagi...';else showErr()})
  .finally(()=>$('live').classList.remove('busy'))}
 function showErr(){$('lt').textContent='Gagal memuat data';
@@ -149,7 +172,37 @@ function showErr(){$('lt').textContent='Gagal memuat data';
 function init(){const s=$('fk');if(s.options.length>1)return;
  [...new Set(D.desa.map(d=>d.kecamatan))].forEach(k=>{const o=el('option',null,k);o.value=k;s.append(o)})}
 function seg(parts){const s=el('div','seg');s.setAttribute('aria-hidden','true');
- parts.forEach(([p,c])=>{const i=el('i');if(c)i.style.background=c;s.append(i);requestAnimationFrame(()=>requestAnimationFrame(()=>i.style.width=p+'%'))});return s}
+ parts.forEach(([p,c])=>{const i=el('i');if(c)i.style.background=c;s.append(i);grow(()=>i.style.width=p+'%')});return s}
+const sv=(t,a)=>{const e=document.createElementNS('http://www.w3.org/2000/svg',t);for(const k in a)e.setAttribute(k,a[k]);return e};
+const tv=d=>d.calon.reduce((a,c)=>a+(c.suara||0),0);
+function donut(parts,big,label){
+ const R=46,C=2*Math.PI*R,tot=parts.reduce((a,p)=>a+p.v,0),s=sv('svg',{viewBox:'0 0 120 120',role:'img','aria-label':label});
+ s.append(sv('circle',{cx:60,cy:60,r:R,fill:'none','stroke-width':18,stroke:'#e4e2db'}));
+ let off=0;
+ if(tot>0)parts.forEach(p=>{if(!p.v)return;const len=p.v/tot*C,
+  c=sv('circle',{cx:60,cy:60,r:R,fill:'none','stroke-width':18,transform:'rotate(-90 60 60)','stroke-dasharray':(FIRST?'0 ':len+' ')+(FIRST?C:C-len),'stroke-dashoffset':-off});
+  c.style.stroke=p.c;s.append(c);grow(()=>c.setAttribute('stroke-dasharray',len+' '+(C-len)));off+=len});
+ const t=sv('text',{x:60,y:60,'text-anchor':'middle','dominant-baseline':'central','font-size':String(big).length>5?16:22,'font-weight':600});
+ t.style.fill='var(--ink)';t.textContent=big;s.append(t);return s}
+function legend(items){const ul=el('ul','dl');items.forEach(([c,l,v])=>{const li=el('li');li.style.setProperty('--c',c);li.append(el('span',null,l),el('span','v',v));ul.append(li)});return ul}
+function renderCharts(ds,cnt,T){
+ const ST=['Final','Sementara','Belum masuk'],rep=cnt.Final+cnt.Sementara;
+ $('cs').replaceChildren(donut(ST.map(k=>({v:cnt[k],c:COL[k]})),rep+'/'+ds.length,'Status '+ds.length+' desa: '+ST.map(k=>cnt[k]+' '+k).join(', ')),
+  legend(ST.map(k=>[COL[k],k,cnt[k]+' desa ('+Math.round(cnt[k]/T*100)+'%)'])));
+ const sel=$('cdsel');
+ if(sel.options.length!==ds.length){const cur=sel.value,best=[...ds].sort((a,b)=>tv(b)-tv(a))[0];
+  sel.replaceChildren(...ds.map(x=>{const o=el('option',null,x.desa+' - Kec. '+x.kecamatan);o.value=x.kecamatan+'|'+x.desa;return o}));
+  if(cur&&[...sel.options].some(o=>o.value===cur))sel.value=cur;else if(best)sel.value=best.kecamatan+'|'+best.desa}
+ const d=ds.find(x=>x.kecamatan+'|'+x.desa===sel.value)||ds[0],tot=d?tv(d):0;
+ if(!d||!d.calon.length)$('cdv').replaceChildren(el('p','empty','Calon belum ditetapkan.'));
+ else if(!tot)$('cdv').replaceChildren(el('p','empty','Belum ada suara masuk untuk desa ini.'));
+ else{const parts=d.calon.map((x,i)=>({v:x.suara||0,c:'var(--c'+(((parseInt(x.nomor_urut)||i+1)-1)%5)+')'}));
+  $('cdv').replaceChildren(donut(parts,nf(tot),'Perolehan suara '+d.desa+': '+d.calon.map(x=>x.nama+' '+nf(x.suara||0)).join(', ')),
+   legend(d.calon.map((x,i)=>[parts[i].c,(x.nomor_urut?x.nomor_urut+'. ':'')+x.nama,nf(x.suara||0)+' ('+pf((x.suara||0)/tot*100)+')'])))}
+ const kv={};ds.forEach(x=>kv[x.kecamatan]=(kv[x.kecamatan]||0)+tv(x));
+ const ent=Object.entries(kv).sort((a,b)=>b[1]-a[1]),mx=ent[0]?ent[0][1]:0;
+ $('ck').replaceChildren(...(mx>0?ent.map(([k,v])=>{const r=el('div','hr'),b=el('div','hbar'),i=el('i');b.append(i);
+  r.append(el('span',null,k),b,el('span','v',nf(v)));grow(()=>i.style.width=v/mx*100+'%');return r}):[el('p','empty','Belum ada suara masuk.')]))}
 function render(){
  const ds=D.desa,fk=$('fk').value,q=$('q').value.trim().toLowerCase(),T=ds.length||1;
  const cnt={Final:0,Sementara:0,'Belum masuk':0};ds.forEach(d=>cnt[d.status]=(cnt[d.status]||0)+1);
@@ -157,8 +210,7 @@ function render(){
  $('lt').textContent=D.last?'Pembaruan terakhir '+new Date(D.last).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})+' WIB':'Belum ada data masuk';
  $('kpi').replaceChildren(...[[(cnt.Final+cnt.Sementara)+' dari '+ds.length,'Desa sudah melapor','var(--acc)'],[cnt.Final,'Desa berstatus final','var(--fin)'],[nf(tot),'Total suara masuk','var(--c1)']]
   .map(([b,s,c])=>{const k=el('div','stat');k.append(el('b',null,b),el('span',null,s));k.style.setProperty('--c',c);return k}));
- $('sb').replaceChildren(...seg(['Final','Sementara'].map(k=>[cnt[k]/T*100,COL[k]])).children);
- $('lg').replaceChildren(...Object.keys(COL).map(k=>{const li=el('li',null,k+': '+cnt[k]+' desa');li.style.setProperty('--c',COL[k]);return li}));
+ renderCharts(ds,cnt,T);
  const by={};ds.forEach(d=>{const x=by[d.kecamatan]=by[d.kecamatan]||{t:0,Final:0,Sementara:0};x.t++;if(x[d.status]!=null)x[d.status]++});
  $('kl').replaceChildren(...Object.entries(by).map(([k,x])=>{
   const li=el('li'),b=el('button','kr');b.type='button';b.setAttribute('aria-pressed',String(fk===k));
@@ -197,7 +249,7 @@ function openFoto(x,d){
  $('lbm').textContent=(x.nomor_urut?'Nomor urut '+x.nomor_urut+' · ':'')+'Desa '+d.desa+', Kec. '+d.kecamatan+(x.petahana?' · Petahana':'');
  $('lb').showModal()}
 $('lb').addEventListener('click',e=>{if(e.target===$('lb'))$('lb').close()});
-$('fk').onchange=$('q').oninput=render;
+$('fk').onchange=$('q').oninput=$('cdsel').onchange=render;
 $('rs').onclick=()=>{$('fk').value='';$('q').value='';FS='';render()};
 load();setInterval(()=>{if(!document.hidden)load()},45000+Math.random()*8000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)load()});
