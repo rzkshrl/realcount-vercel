@@ -64,6 +64,16 @@ input{min-width:min(100%,260px)}
 .cal{display:grid;grid-template-columns:56px 1fr;gap:var(--s3);padding:var(--s3) 0;border-top:1px solid var(--line);align-items:start}
 .ph{position:relative;width:56px;aspect-ratio:var(--ar,2/3);border-radius:var(--r-sm);background:var(--belT);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ph{border:0;padding:0;font:inherit}
+button.ph{cursor:zoom-in;transition:filter .15s}
+button.ph:hover{filter:brightness(.94)}
+button.ph::after{content:"+";position:absolute;right:4px;bottom:4px;width:20px;height:20px;border-radius:50%;background:rgba(29,27,23,.78);color:#fff;font-size:14px;font-weight:600;line-height:20px;text-align:center}
+dialog{border:0;border-radius:var(--r-lg);padding:var(--s4);max-width:min(92vw,520px);background:var(--card);color:var(--ink)}
+dialog::backdrop{background:rgba(29,27,23,.72)}
+body:has(dialog[open]){overflow:hidden}
+#lbi{display:block;max-width:100%;max-height:68vh;margin:0 auto;border-radius:var(--r-sm);background:rgba(29,27,23,.08);min-height:160px;object-fit:contain}
+#lb h3{margin:var(--s4) 0 0;font-size:20px;line-height:1.3;font-weight:600}
+#lb p{margin:0 0 var(--s4);color:var(--mut)}
 .no{position:absolute;left:0;top:0;z-index:1;background:var(--c);color:#fff;font-size:13px;font-weight:600;line-height:1.4;padding:0 6px;border-radius:0 0 var(--r-sm) 0}
 .nm{font-weight:600}
 .tag{margin-left:var(--s2);padding:1px var(--s2);border-radius:99px;background:var(--finT);color:var(--fin);font-size:13px;font-weight:600}
@@ -116,6 +126,12 @@ footer{padding:var(--s7) 0 var(--s6);color:var(--mut)}
 </div></section>
 </main>
 <footer><div class="wrap"><p>Data dimuat ulang otomatis.</p></div></footer>
+<dialog id="lb" aria-labelledby="lbn">
+<img id="lbi" alt="">
+<h3 id="lbn"></h3>
+<p id="lbm"></p>
+<form method="dialog"><button class="btn" autofocus>Tutup</button></form>
+</dialog>
 <script>
 const $=id=>document.getElementById(id),nf=n=>n==null?'-':n.toLocaleString('id-ID'),
 pf=n=>n.toLocaleString('id-ID',{minimumFractionDigits:2,maximumFractionDigits:2})+'%';
@@ -163,7 +179,7 @@ function card(d){
  const v=d.calon.map(x=>x.suara||0),sum=v.reduce((a,b)=>a+b,0),max=Math.max(0,...v);
  if(!d.calon.length)c.append(el('p','empty','Calon belum ditetapkan.'));
  d.calon.forEach((x,i)=>{
-  const lead=max>0&&x.suara===max,r=el('div','cal'),ph=el('div','ph');ph.style.setProperty('--ar',({'4x6':'2/3','3x4':'3/4','1x1':'1/1'})[x.rasio]||'2/3');
+  const lead=max>0&&x.suara===max,r=el('div','cal'),ph=el(x.foto?'button':'div','ph');if(x.foto){ph.type='button';ph.setAttribute('aria-label','Perbesar foto '+x.nama);ph.onclick=()=>openFoto(x,d)}ph.style.setProperty('--ar',({'4x6':'2/3','3x4':'3/4','1x1':'1/1'})[x.rasio]||'2/3');
   r.style.setProperty('--c','var(--c'+(((parseInt(x.nomor_urut)||i+1)-1)%5)+')');
   ph.append(el('span','no',x.nomor_urut||'—'));
   ph.append(el('span',null,x.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()));
@@ -175,6 +191,12 @@ function card(d){
  const s=[...v].sort((a,b)=>b-a);
  if(d.calon.length>1&&sum>0)c.append(el('p','gap',s[0]===s[1]?'Dua calon teratas sama suara.':'Selisih '+nf(s[0]-s[1])+' suara dari urutan kedua.'));
  return c}
+function openFoto(x,d){
+ const im=$('lbi');im.alt='Foto '+x.nama;im.src=x.foto.startsWith('/api/foto?')?x.foto+'&big=1':x.foto;
+ $('lbn').textContent=x.nama;
+ $('lbm').textContent=(x.nomor_urut?'Nomor urut '+x.nomor_urut+' · ':'')+'Desa '+d.desa+', Kec. '+d.kecamatan+(x.petahana?' · Petahana':'');
+ $('lb').showModal()}
+$('lb').addEventListener('click',e=>{if(e.target===$('lb'))$('lb').close()});
 $('fk').onchange=$('q').oninput=render;
 $('rs').onclick=()=>{$('fk').value='';$('q').value='';FS='';render()};
 load();setInterval(()=>{if(!document.hidden)load()},45000+Math.random()*8000);
