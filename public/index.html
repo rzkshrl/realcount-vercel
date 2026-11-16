@@ -61,8 +61,8 @@ input{min-width:min(100%,260px)}
 .chip{white-space:nowrap;border-radius:99px;padding:2px var(--s3);font-size:13px;font-weight:600;background:var(--belT);color:var(--mut)}
 .chip.Final{background:var(--finT);color:var(--fin)}
 .chip.Sementara{background:var(--semT);color:var(--sem)}
-.cal{display:grid;grid-template-columns:56px 1fr;gap:var(--s3);padding:var(--s3) 0;border-top:1px solid var(--line)}
-.ph{position:relative;width:56px;height:56px;border-radius:var(--r-sm);background:var(--belT);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600}
+.cal{display:grid;grid-template-columns:56px 1fr;gap:var(--s3);padding:var(--s3) 0;border-top:1px solid var(--line);align-items:start}
+.ph{position:relative;width:56px;aspect-ratio:var(--ar,2/3);border-radius:var(--r-sm);background:var(--belT);overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--mut);font-weight:600}
 .ph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .no{position:absolute;left:0;top:0;z-index:1;background:var(--c);color:#fff;font-size:13px;font-weight:600;line-height:1.4;padding:0 6px;border-radius:0 0 var(--r-sm) 0}
 .nm{font-weight:600}
@@ -163,7 +163,7 @@ function card(d){
  const v=d.calon.map(x=>x.suara||0),sum=v.reduce((a,b)=>a+b,0),max=Math.max(0,...v);
  if(!d.calon.length)c.append(el('p','empty','Calon belum ditetapkan.'));
  d.calon.forEach((x,i)=>{
-  const lead=max>0&&x.suara===max,r=el('div','cal'),ph=el('div','ph');
+  const lead=max>0&&x.suara===max,r=el('div','cal'),ph=el('div','ph');ph.style.setProperty('--ar',({'4x6':'2/3','3x4':'3/4','1x1':'1/1'})[x.rasio]||'2/3');
   r.style.setProperty('--c','var(--c'+(((parseInt(x.nomor_urut)||i+1)-1)%5)+')');
   ph.append(el('span','no',x.nomor_urut||'—'));
   ph.append(el('span',null,x.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()));
