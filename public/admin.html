@@ -34,10 +34,28 @@ input[type=range]{width:240px;max-width:100%;min-height:44px}
 .st.ok{color:var(--fin)}
 [hidden]{display:none!important}
 @media (max-width:560px){.row2{grid-template-columns:1fr}}
+
+input[type=text]{min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);font:inherit;color:var(--ink);background:var(--card);padding:0 var(--s4);width:100%}
+h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
+.lnk{color:#fff;display:inline-block;margin-top:var(--s2)}
+.tabs{display:flex;flex-wrap:wrap;gap:var(--s2);margin-bottom:var(--s4)}
+.tabs button{min-height:44px;padding:0 var(--s4);border:1px solid var(--line);border-radius:99px;background:var(--card);font:inherit;font-weight:500;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);border-color:var(--ink);color:#fff}
+.vr{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);padding:var(--s3) 0;border-top:1px solid var(--line)}
+.vl{display:flex;align-items:center;gap:var(--s3);flex:1;flex-wrap:wrap;color:var(--ink);font-size:16px;font-weight:500}
+.vl input{width:130px;font-size:18px}
+.vn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:99px;background:var(--ink);color:#fff;font-size:13px;font-weight:600}
+.pc{min-width:64px;text-align:right;color:var(--mut);font-variant-numeric:tabular-nums}
+.ck{display:flex;align-items:center;gap:var(--s2);min-height:44px;font-size:16px;color:var(--ink)}
+.ck input{width:20px;height:20px}
+.f .nmf{width:220px}
+.btns{display:flex;flex-wrap:wrap;gap:var(--s3);margin-top:var(--s4)}
+.btn.alt{background:transparent;color:var(--ink)}
+.btn.danger{background:#b42318;border-color:#b42318;margin-top:var(--s3)}
 </style>
 </head>
 <body>
-<header class="band"><div class="wrap"><h1>Admin: foto dan nomor urut calon</h1></div></header>
+<header class="band"><div class="wrap"><h1>Admin Quick Count</h1><a class="lnk" href="/">Lihat dashboard</a></div></header>
 <main><div class="wrap">
 <div class="card" id="login">
 <label>Kunci admin<input type="password" id="key" autocomplete="current-password"></label>
@@ -45,17 +63,36 @@ input[type=range]{width:240px;max-width:100%;min-height:44px}
 <button class="btn" id="go" type="button">Masuk</button>
 </div>
 <div id="work" hidden>
-<div class="card row2">
+<div class="tabs" role="tablist" aria-label="Menu admin">
+<button role="tab" data-t="v" aria-selected="true" type="button">Input suara</button>
+<button role="tab" data-t="c" aria-selected="false" type="button">Calon dan foto</button>
+<button role="tab" data-t="p" aria-selected="false" type="button">Pengaturan</button>
+</div>
+<div class="card row2" id="sel">
 <label>Kecamatan<select id="fk"></select></label>
 <label>Desa<select id="fd"></select></label>
 </div>
-<div id="list"></div>
+<section id="tv" role="tabpanel"><p class="st" id="sum"></p><div class="card" id="vform"></div></section>
+<section id="tc" role="tabpanel" hidden>
+<div class="card"><h2>Tambah calon</h2>
+<div class="f"><label>Kecamatan<input id="ak" list="kl" type="text"></label><label>Desa<input id="ad" list="dl" type="text"></label>
+<label class="nmf">Nama calon<input id="an" type="text" maxlength="80"></label>
+<label class="ck"><input type="checkbox" id="ap"> Petahana</label>
+<button class="btn" id="addb" type="button">Tambah</button></div>
+<p class="st" id="addm" role="status"></p><datalist id="kl"></datalist><datalist id="dl"></datalist></div>
+<div id="list"></div></section>
+<section id="tp" role="tabpanel" hidden>
+<div class="card"><h2>Kosongkan semua suara</h2>
+<p>Menghapus semua suara dan mengembalikan status semua desa ke "Belum masuk". Pakai setelah uji coba. Riwayat perubahan tetap ada di sheet Log.</p>
+<label>Ketik RESET untuk konfirmasi<input id="rc" type="text" autocomplete="off"></label>
+<button class="btn danger" id="rb" type="button">Kosongkan semua suara</button><p class="st" id="rm" role="status"></p></div>
+</section>
 </div>
 </div></main>
 <script>
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-let KEY='',ITEMS=[];
+let KEY='';
 const MAXB=40*1024,W=240;
 const RAT={'4x6':[4,6],'3x4':[3,4],'1x1':[1,1]},AR={'4x6':'2/3','3x4':'3/4','1x1':'1/1'},RL={'4x6':'4 x 6 (potret)','3x4':'3 x 4','1x1':'1 x 1 (persegi)'};
 const call=(fn,data)=>fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,key:KEY,data})}).then(r=>r.json());
@@ -85,43 +122,92 @@ async function makeEditor(file,rasio){
     const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,ow,oh);x.drawImage(bmp,-ox/s,-oy/s,W/s,H/s,0,0,ow,oh);
     for(let q=.85;q>=.35;q-=.1){const bl=await toBlob(c,q);if(bl.size<=MAXB)return{blob:bl,b64:await toB64(bl)}}}
    throw new Error('size')}}}
-$('go').onclick=()=>{KEY=$('key').value;$('msg').textContent='Memuat...';
- call('list').then(r=>{if(r.error){$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah.':r.error;return}
-  ITEMS=r.items;$('login').hidden=true;$('work').hidden=false;fillK()}).catch(()=>$('msg').textContent='Gagal terhubung.')};
+
+const STAT=['Belum masuk','Sementara','Final'];
+let S={calon:[],desa:[]},TAB='v',FLASH='';
+const nf=n=>n==null||n===''?'':Number(n).toLocaleString('id-ID');
+const act=(k,d)=>S.calon.filter(c=>c.kecamatan===k&&c.desa===d&&c.aktif).sort((a,b)=>(+a.nomor_urut||99)-(+b.nomor_urut||99));
+const inf=(k,d)=>S.desa.find(x=>x.kecamatan===k&&x.desa===d)||{status:STAT[0],updated:0};
+const opt=(t,v)=>{const o=el('option',null,t);o.value=v;return o};
+async function run(fn,data,m){m.className='st';m.textContent='Menyimpan...';
+ try{const r=await call(fn,data);
+  if(r.error){m.textContent=r.error==='unauthorized'?'Sesi tidak valid atau terkunci. Muat ulang halaman.':r.error;return null}
+  S={calon:r.calon,desa:r.desa};return r}
+ catch(e){m.textContent='Gagal terhubung. Coba lagi.';return null}}
+$('go').onclick=async()=>{KEY=$('key').value;$('msg').textContent='Memuat...';
+ try{const r=await call('list');if(r.error){$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah.':r.error;return}
+  S={calon:r.calon,desa:r.desa};$('login').hidden=true;$('work').hidden=false;fillK()}catch(e){$('msg').textContent='Gagal terhubung.'}};
 $('key').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
-function fillK(){$('fk').replaceChildren(...[...new Set(ITEMS.map(i=>i.kecamatan))].map(k=>{const o=el('option',null,k);o.value=k;return o}));fillD()}
-function fillD(){const k=$('fk').value;
- $('fd').replaceChildren(...[...new Set(ITEMS.filter(i=>i.kecamatan===k).map(i=>i.desa))].map(d=>{const o=el('option',null,d);o.value=d;return o}));rows()}
-$('fk').onchange=fillD;$('fd').onchange=rows;
-function rows(){const k=$('fk').value,d=$('fd').value;
- $('list').replaceChildren(...ITEMS.filter(i=>i.kecamatan===k&&i.desa===d).map(row))}
-function row(it){
+function fillK(k,d){const ks=[...new Set(S.calon.map(c=>c.kecamatan))];
+ $('fk').replaceChildren(...ks.map(x=>opt(x,x)));if(k&&ks.includes(k))$('fk').value=k;
+ $('kl').replaceChildren(...ks.map(x=>opt('',x)));$('dl').replaceChildren(...[...new Set(S.calon.map(c=>c.desa))].map(x=>opt('',x)));fillD(d)}
+function fillD(d){const k=$('fk').value,ds=S.desa.filter(x=>x.kecamatan===k);
+ $('fd').replaceChildren(...ds.map(x=>opt(x.desa+'  ('+x.status+')',x.desa)));if(d&&ds.some(x=>x.desa===d))$('fd').value=d;show()}
+$('fk').onchange=()=>fillD();$('fd').onchange=show;
+document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;
+ document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
+ ['v','c','p'].forEach(t=>$('t'+t).hidden=t!==TAB);$('sel').hidden=TAB==='p';show()});
+function show(){const c={};S.desa.forEach(x=>c[x.status]=(c[x.status]||0)+1);
+ $('sum').textContent='Final '+(c.Final||0)+' · Sementara '+(c.Sementara||0)+' · Belum masuk '+(c['Belum masuk']||0)+' dari '+S.desa.length+' desa';
+ if(TAB==='v')vote();if(TAB==='c')cards()}
+function vote(){
+ const k=$('fk').value,d=$('fd').value,cs=act(k,d),i=inf(k,d),box=$('vform');
+ if(!cs.length){box.replaceChildren(el('p','st','Desa ini belum punya calon aktif. Tambahkan atau aktifkan di tab Calon dan foto.'));return}
+ const ins=[],pcs=[],tot=el('b','','0'),m=el('p','st',FLASH);if(FLASH)m.className='st ok';FLASH='';
+ const rowsEl=cs.map((c,n)=>{const r=el('div','vr'),lb=el('label','vl'),x=el('input'),p=el('span','pc');
+  x.type='number';x.min='0';x.step='1';x.inputMode='numeric';x.value=c.suara==null?'':c.suara;x.dataset.id=c.id;
+  x.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();(ins[n+1]||b1).focus()}};
+  ins.push(x);pcs.push(p);lb.append(el('span','vn',c.nomor_urut||'-'),el('span','',c.nama+(c.petahana?' (petahana)':'')),x);r.append(lb,p);return r});
+ const sl=el('label','','Status desa'),st=el('select');STAT.forEach(s=>st.append(opt(s,s)));st.value=i.status;sl.append(st);
+ const calc=()=>{const t=ins.reduce((a,x)=>a+(+x.value||0),0);tot.textContent=nf(t);
+  ins.forEach((x,n)=>pcs[n].textContent=x.value!==''&&t>0?(+x.value/t*100).toFixed(2)+'%':'');
+  if(st.value===STAT[0]&&ins.some(x=>x.value!==''))st.value=STAT[1]};
+ ins.forEach(x=>x.oninput=calc);
+ const b1=el('button','btn','Simpan'),b2=el('button','btn alt','Simpan dan lanjut ke desa berikutnya');b1.type=b2.type='button';
+ const save=async next=>{b1.disabled=b2.disabled=true;const suara={};ins.forEach(x=>suara[x.dataset.id]=x.value.trim());
+  const r=await run('saveVotes',{kecamatan:k,desa:d,status:st.value,suara},m);b1.disabled=b2.disabled=false;if(!r)return;
+  FLASH='Tersimpan.';
+  if(next){const idx=S.desa.findIndex(x=>x.kecamatan===k&&x.desa===d),nx=S.desa.slice(idx+1).concat(S.desa.slice(0,idx)).find(x=>x.status===STAT[0]);
+   if(nx){fillK(nx.kecamatan,nx.desa);return}FLASH='Tersimpan. Semua desa sudah masuk.'}
+  fillK(k,d)};
+ b1.onclick=()=>save(false);b2.onclick=()=>save(true);
+ const tr=el('div','vr');tr.append(el('span','vl','Total suara'),tot);
+ const bt=el('div','btns');bt.append(b1,b2);
+ box.replaceChildren(el('p','nm',d+' · Kec. '+k),el('p','st','Terakhir diperbarui: '+(i.updated?new Date(i.updated).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})+' WIB':'belum ada')),
+  ...rowsEl,tr,sl,bt,m);calc()}
+function cards(){const k=$('fk').value,d=$('fd').value;
+ $('list').replaceChildren(...S.calon.filter(c=>c.kecamatan===k&&c.desa===d).map(card))}
+function card(it){
  const c=el('div','card cal'),ph=el('div','ph',it.nama.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase());
  ph.style.setProperty('--ar',AR[it.rasio]||'2/3');
  const show=u=>{ph.querySelector('img')?.remove();const im=new Image();im.src=u;im.alt='Foto '+it.nama;im.onerror=()=>im.remove();ph.append(im)};
  if(it.foto)show(it.foto);
  const b=el('div'),f=el('div','f'),st=el('p','st');st.setAttribute('role','status');
+ const ml=el('label','nmf','Nama calon'),nm=el('input');nm.type='text';nm.maxLength=80;nm.value=it.nama;ml.append(nm);
  const nl=el('label','nu','Nomor urut'),num=el('input');num.type='number';num.min='1';num.max='99';num.value=it.nomor_urut||'';nl.append(num);
- const rl=el('label','rs','Rasio foto'),rs=el('select');
- Object.keys(RAT).forEach(k=>{const o=el('option',null,RL[k]);o.value=k;rs.append(o)});rs.value=it.rasio||'4x6';rl.append(rs);
+ const rl=el('label','rs','Rasio foto'),rs=el('select');Object.keys(RAT).forEach(x=>rs.append(opt(RL[x],x)));rs.value=it.rasio||'4x6';rl.append(rs);
  const fl=el('label','','Foto baru (JPG/PNG)'),file=el('input');file.type='file';file.accept='image/*';fl.append(file);
+ const pl=el('label','ck'),pe=el('input');pe.type='checkbox';pe.checked=it.petahana;pl.append(pe,' Petahana');
+ const al=el('label','ck'),ae=el('input');ae.type='checkbox';ae.checked=it.aktif;al.append(ae,' Aktif (tampil di dashboard)');
  const btn=el('button','btn','Simpan');btn.type='button';
  let ed=null;
  file.onchange=async()=>{if(!file.files[0])return;st.className='st';
   try{if(ed)ed.el.remove();ed=await makeEditor(file.files[0],rs.value);b.insertBefore(ed.el,st);st.textContent=''}
   catch(e){ed=null;st.textContent='Gagal membaca foto. Gunakan JPG atau PNG.'}};
  rs.onchange=()=>{ph.style.setProperty('--ar',AR[rs.value]);if(ed)ed.setRatio(rs.value)};
- btn.onclick=async()=>{btn.disabled=true;st.className='st';st.textContent='Menyimpan...';
-  const data={kecamatan:it.kecamatan,desa:it.desa,nama:it.nama,nomor_urut:num.value.trim(),rasio:rs.value};
-  let kb='';
+ btn.onclick=async()=>{btn.disabled=true;
+  const data={id:it.id,nama:nm.value,petahana:pe.checked,aktif:ae.checked,nomor_urut:num.value.trim(),rasio:rs.value};let kb='';
   try{if(ed){const o=await ed.out();data.foto_b64=o.b64;kb=' Foto dikompres menjadi '+Math.max(1,Math.round(o.blob.size/1024))+' KB.';show(URL.createObjectURL(o.blob))}
-   const r=await call('save',data);
-   if(r.error)st.textContent=r.error;
-   else{st.textContent='Tersimpan.'+kb+' Dashboard menampilkan perubahan dalam sekitar 1 menit.';st.className='st ok';
-    it.nomor_urut=data.nomor_urut;it.rasio=data.rasio;if(ed){ed.el.remove();ed=null;file.value=''}}
-  }catch(e){st.textContent=e.message==='size'?'Foto tidak bisa dikecilkan sampai 40 KB. Coba foto lain.':'Gagal menyimpan. Coba lagi.'}
+   const r=await run('saveCalon',data,st);
+   if(r){st.textContent='Tersimpan.'+kb;st.className='st ok';if(ed){ed.el.remove();ed=null;file.value=''}}
+  }catch(e){st.textContent=e.message==='size'?'Foto tidak bisa dikecilkan sampai 40 KB. Coba foto lain.':'Gagal memproses foto. Gunakan JPG atau PNG.'}
   btn.disabled=false};
- f.append(nl,rl,fl,btn);b.append(el('p','nm',it.nama),f,st);c.append(ph,b);return c}
+ f.append(ml,nl,rl,fl,pl,al,btn);b.append(f,st);c.append(ph,b);return c}
+$('addb').onclick=async()=>{const k=$('ak').value.trim().toUpperCase(),d=$('ad').value.trim().toUpperCase(),m=$('addm');
+ const r=await run('addCalon',{kecamatan:k,desa:d,nama:$('an').value.trim(),petahana:$('ap').checked},m);
+ if(r){$('an').value='';$('ap').checked=false;fillK(k,d);m.textContent='Calon ditambahkan ke desa '+d+'.';m.className='st ok'}};
+$('rb').onclick=async()=>{const m=$('rm'),r=await run('reset',{confirm:$('rc').value.trim()},m);
+ if(r){$('rc').value='';m.textContent='Semua suara dikosongkan.';m.className='st ok';fillK($('fk').value,$('fd').value)}};
 </script>
 </body>
 </html>

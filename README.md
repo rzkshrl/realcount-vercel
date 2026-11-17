@@ -1,16 +1,18 @@
-# Quick Count Pilkades Wonogiri 2026 (Vercel + Apps Script backend)
+# Quick Count Pilkades Wonogiri 2026
 
-Alur: PIC -> 18 workbook -> Code.gs (Apps Script, backend saja) -> sheet `Data` -> JSON API -> Vercel `/api/data` (cache 30 dtk) -> halaman publik.
-Halaman: `/` (dashboard publik) dan `/admin` (foto dan nomor urut).
+Satu admin menginput semua data di `/admin`. Google Sheet hanya database, Apps Script (Code.gs) hanya backend API.
+Alur: /admin -> /api/admin -> Apps Script -> sheet (Config_Calon, Desa, Suara, Log) -> /api/data (cache 30 dtk) -> dashboard `/`.
 
-## 1. Apps Script (backend, tanpa halaman)
-1. Script properties: `API_TOKEN` (acak, panjang) dan `ADMIN_KEY` (kunci admin).
-2. Deploy > New deployment > Web app: Execute as **Me**, access **Anyone**. Salin URL `/exec`. (Hanya untuk API; halaman web tidak disajikan dari sini.)
-3. Tes: `URL/exec?api=1&token=TOKEN` harus menampilkan JSON; tanpa token `unauthorized`.
-Setiap Code.gs berubah: Deploy > Manage deployments > Edit > New version.
+## Apps Script
+1. Tempel Code.gs di Extensions > Apps Script pada spreadsheet DB Pusat, jalankan `setupDB` (merapikan Config_Calon lama, menambah id, membuat sheet Desa/Suara/Log).
+2. Script properties: `API_TOKEN` dan `ADMIN_KEY`.
+3. Jalankan `cleanupOldTriggers` (sistem 18 workbook tidak dipakai lagi), lalu `diagnose`.
+4. Deploy > Web app: Execute as Me, access Anyone. Setiap Code.gs berubah: New version.
 
-## 2. Vercel
-Framework Preset: Other, tanpa build command. Environment variables: `APPS_SCRIPT_URL` (URL /exec) dan `API_TOKEN` (sama).
+## Vercel
+Env: `APPS_SCRIPT_URL` (URL /exec), `API_TOKEN` (sama). Setelah ubah env: Redeploy.
 
-## 3. Foto calon
-Buka `/admin`, masukkan `ADMIN_KEY`, pilih kecamatan dan desa. Foto otomatis dipotong persegi dan dikompres sampai 40 KB atau kurang di browser, lalu disimpan di folder Drive "QC Pilkades 2026 - Foto" dan disajikan lewat `/api/foto` (cache CDN).
+## Pemakaian /admin
+- Input suara: pilih kecamatan dan desa, isi suara tiap calon, pilih status, Simpan (atau Simpan dan lanjut).
+- Calon dan foto: tambah/ubah calon, nomor urut, rasio dan potong foto (otomatis <= 40 KB).
+- Pengaturan: kosongkan semua suara setelah uji coba.
