@@ -4,14 +4,16 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/img/favicon.png" type="image/png">
 <title>Admin Quick Count Pilkades Wonogiri 2026</title>
 <style>
-:root{color-scheme:light;--bg:#f5f4ef;--card:#fff;--ink:#1d1b17;--mut:#645f57;--line:rgba(29,27,23,.14);--acc:#1456c8;--fin:#16794a;--r-sm:8px;--r-lg:12px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s7:48px}
+:root{color-scheme:light;--bg:#f1f4f5;--card:#fff;--ink:#1d1b17;--mut:#645f57;--line:rgba(29,27,23,.14);--acc:#b5121b;--fin:#16794a;--r-sm:8px;--r-lg:12px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s7:48px}
 *{box-sizing:border-box}
 html,body{margin:0}
-body{background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@font-face{font-family:"Jakarta";src:url(/fonts/jakarta.woff2) format("woff2");font-weight:200 800;font-display:swap}
+body{background:var(--bg);color:var(--ink);font:16px/1.6 "Jakarta",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:900px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
-.band{background:var(--acc);color:#fff;padding:var(--s5) 0}
+.band{background:var(--acc);color:#fff;padding:var(--s5) 0;border-bottom:4px solid #d4b34a}.hd{display:flex;align-items:center;gap:var(--s4)}.hd img{flex:none;height:auto}
 h1{margin:0;font-size:clamp(22px,3vw,28px);line-height:1.2;letter-spacing:-.02em;font-weight:600}
 main{padding:var(--s5) 0 var(--s7)}
 :focus-visible{outline:3px solid #e8a33d;outline-offset:2px}
@@ -55,7 +57,7 @@ h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
 </style>
 </head>
 <body>
-<header class="band"><div class="wrap"><h1>Admin Quick Count</h1><a class="lnk" href="/">Lihat dashboard</a></div></header>
+<header class="band"><div class="wrap hd"><img src="/img/seal.webp" width="40" height="50" alt=""><div><h1>Admin Quick Count Pilkades Wonogiri</h1><a class="lnk" href="/">Lihat dashboard</a></div></div></header>
 <main><div class="wrap">
 <div class="card" id="login">
 <label>Kunci admin<input type="password" id="key" autocomplete="current-password"></label>
@@ -90,6 +92,7 @@ h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
 </div>
 </div></main>
 <script>
+function proper(s){s=String(s||'').trim().replace(/\s+/g,' ');if(!s)return s;const i=s.indexOf(','),main=i<0?s:s.slice(0,i),deg=i<0?'':s.slice(i);return main.toLocaleLowerCase('id-ID').replace(/(^|[\s.\-(\/])(\p{L})/gu,(m,a,b)=>a+b.toLocaleUpperCase('id-ID'))+deg}
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
 let KEY='';
@@ -157,7 +160,7 @@ function vote(){
  const rowsEl=cs.map((c,n)=>{const r=el('div','vr'),lb=el('label','vl'),x=el('input'),p=el('span','pc');
   x.type='number';x.min='0';x.step='1';x.inputMode='numeric';x.value=c.suara==null?'':c.suara;x.dataset.id=c.id;
   x.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();(ins[n+1]||b1).focus()}};
-  ins.push(x);pcs.push(p);lb.append(el('span','vn',c.nomor_urut||'-'),el('span','',c.nama+(c.petahana?' (petahana)':'')),x);r.append(lb,p);return r});
+  ins.push(x);pcs.push(p);lb.append(el('span','vn',c.nomor_urut||'-'),el('span','',proper(c.nama)+(c.petahana?' (petahana)':'')),x);r.append(lb,p);return r});
  const sl=el('label','','Status desa'),st=el('select');STAT.forEach(s=>st.append(opt(s,s)));st.value=i.status;sl.append(st);
  const calc=()=>{const t=ins.reduce((a,x)=>a+(+x.value||0),0);tot.textContent=nf(t);
   ins.forEach((x,n)=>pcs[n].textContent=x.value!==''&&t>0?(+x.value/t*100).toFixed(2)+'%':'');
@@ -183,7 +186,7 @@ function card(it){
  const show=u=>{ph.querySelector('img')?.remove();const im=new Image();im.src=u;im.alt='Foto '+it.nama;im.onerror=()=>im.remove();ph.append(im)};
  if(it.foto)show(it.foto);
  const b=el('div'),f=el('div','f'),st=el('p','st');st.setAttribute('role','status');
- const ml=el('label','nmf','Nama calon'),nm=el('input');nm.type='text';nm.maxLength=80;nm.value=it.nama;ml.append(nm);
+ const ml=el('label','nmf','Nama calon'),nm=el('input');nm.type='text';nm.maxLength=80;nm.value=proper(it.nama);ml.append(nm);
  const nl=el('label','nu','Nomor urut'),num=el('input');num.type='number';num.min='1';num.max='99';num.value=it.nomor_urut||'';nl.append(num);
  const rl=el('label','rs','Rasio foto'),rs=el('select');Object.keys(RAT).forEach(x=>rs.append(opt(RL[x],x)));rs.value=it.rasio||'4x6';rl.append(rs);
  const fl=el('label','','Foto baru (JPG/PNG)'),file=el('input');file.type='file';file.accept='image/*';fl.append(file);
@@ -196,7 +199,7 @@ function card(it){
   catch(e){ed=null;st.textContent='Gagal membaca foto. Gunakan JPG atau PNG.'}};
  rs.onchange=()=>{ph.style.setProperty('--ar',AR[rs.value]);if(ed)ed.setRatio(rs.value)};
  btn.onclick=async()=>{btn.disabled=true;
-  const data={id:it.id,nama:nm.value,petahana:pe.checked,aktif:ae.checked,nomor_urut:num.value.trim(),rasio:rs.value};let kb='';
+  const data={id:it.id,nama:proper(nm.value),petahana:pe.checked,aktif:ae.checked,nomor_urut:num.value.trim(),rasio:rs.value};let kb='';
   try{if(ed){const o=await ed.out();data.foto_b64=o.b64;kb=' Foto dikompres menjadi '+Math.max(1,Math.round(o.blob.size/1024))+' KB.';show(URL.createObjectURL(o.blob))}
    const r=await run('saveCalon',data,st);
    if(r){st.textContent='Tersimpan.'+kb;st.className='st ok';if(ed){ed.el.remove();ed=null;file.value=''}}
@@ -204,7 +207,7 @@ function card(it){
   btn.disabled=false};
  f.append(ml,nl,rl,fl,pl,al,btn);b.append(f,st);c.append(ph,b);return c}
 $('addb').onclick=async()=>{const k=$('ak').value.trim().toUpperCase(),d=$('ad').value.trim().toUpperCase(),m=$('addm');
- const r=await run('addCalon',{kecamatan:k,desa:d,nama:$('an').value.trim(),petahana:$('ap').checked},m);
+ const r=await run('addCalon',{kecamatan:k,desa:d,nama:proper($('an').value),petahana:$('ap').checked},m);
  if(r){$('an').value='';$('ap').checked=false;fillK(k,d);m.textContent='Calon ditambahkan ke desa '+d+'.';m.className='st ok'}};
 $('rb').onclick=async()=>{const m=$('rm'),r=await run('reset',{confirm:$('rc').value.trim()},m);
  if(r){$('rc').value='';m.textContent='Semua suara dikosongkan.';m.className='st ok';fillK($('fk').value,$('fd').value)}};
