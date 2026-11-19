@@ -13,7 +13,7 @@ html,body{margin:0}
 @font-face{font-family:"Jakarta";src:url(/fonts/jakarta.woff2) format("woff2");font-weight:200 800;font-display:swap}
 body{background:var(--bg);color:var(--ink);font:16px/1.6 "Jakarta",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
 .wrap{max-width:900px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
-.band{background:var(--acc);color:#fff;padding:var(--s5) 0;border-bottom:4px solid #d4b34a}.hd{display:flex;align-items:center;gap:var(--s4)}.hd img{flex:none;height:auto}
+.band{background:var(--acc);color:#fff;padding:var(--s5) 0;border-bottom:4px solid #d4b34a}.band>.wrap{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}.hd{display:flex;align-items:center;gap:var(--s4)}.hd img{flex:none;height:auto}
 h1{margin:0;font-size:clamp(22px,3vw,28px);line-height:1.2;letter-spacing:-.02em;font-weight:600}
 main{padding:var(--s5) 0 var(--s7)}
 :focus-visible{outline:3px solid #e8a33d;outline-offset:2px}
@@ -53,14 +53,28 @@ h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
 .f .nmf{width:220px}
 .btns{display:flex;flex-wrap:wrap;gap:var(--s3);margin-top:var(--s4)}
 .btn.alt{background:transparent;color:var(--ink)}
+.hd>div:not(.hr){flex:1;min-width:200px}.hr{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap}
+.sync{display:inline-flex;align-items:center;gap:var(--s2);font-size:14px;font-weight:600;background:rgba(255,255,255,.14);padding:6px 12px;border-radius:99px}
+.sync i{width:10px;height:10px;border-radius:50%;background:#6ee7a1}
+.sync.busy i{background:none;border:2px solid #fff;border-top-color:transparent;animation:spin .7s linear infinite}
+.sync.bad i{background:#ffd166}
+.btn.out{background:transparent;border-color:rgba(255,255,255,.7);color:#fff}
+.fail{background:#fdecea;border-bottom:1px solid #f3b4ae;color:#8a1c12;padding:var(--s3) 0}
+.fail .wrap{display:flex;align-items:center;justify-content:space-between;gap:var(--s3);flex-wrap:wrap;font-weight:600}
+.fail .btn{background:#b42318;border-color:#b42318}
+.q{color:#9a6400;font-weight:600}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .btn.danger{background:#b42318;border-color:#b42318;margin-top:var(--s3)}
 </style>
 </head>
 <body>
-<header class="band"><div class="wrap hd"><img src="/img/seal.webp" width="40" height="50" alt=""><div><h1>Admin Quick Count Pilkades Wonogiri</h1><a class="lnk" href="/">Lihat dashboard</a></div></div></header>
+<header class="band"><div class="wrap hd"><img src="/img/seal.webp" width="40" height="50" alt=""><div><h1>Admin Quick Count Pilkades Wonogiri</h1><a class="lnk" href="/">Lihat dashboard</a></div><div class="hr" id="hr" hidden><span class="sync" id="sync" role="status" aria-live="polite"><i></i><span id="synct">Semua tersimpan</span></span><button class="btn out" id="out" type="button">Keluar</button></div></div></header>
+<div class="fail" id="fail" role="alert" hidden><div class="wrap"><span id="failt"></span><button class="btn" id="retry" type="button">Coba simpan lagi</button></div></div>
 <main><div class="wrap">
 <div class="card" id="login">
 <label>Kunci admin<input type="password" id="key" autocomplete="current-password"></label>
+<label class="ck"><input type="checkbox" id="rem" checked> Tetap masuk di perangkat ini selama 14 hari</label>
 <p class="st" id="msg" role="status"></p>
 <button class="btn" id="go" type="button">Masuk</button>
 </div>
@@ -95,10 +109,15 @@ h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
 function proper(s){s=String(s||'').trim().replace(/\s+/g,' ');if(!s)return s;const i=s.indexOf(','),main=i<0?s:s.slice(0,i),deg=i<0?'':s.slice(i);return main.toLocaleLowerCase('id-ID').replace(/(^|[\s.\-(\/])(\p{L})/gu,(m,a,b)=>a+b.toLocaleUpperCase('id-ID'))+deg}
 const $=id=>document.getElementById(id);
 const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
-let KEY='';
+let KEY='',SES='';
+const SK='qc-admin';
+const ls={get(){try{return JSON.parse(localStorage.getItem(SK)||sessionStorage.getItem(SK)||'null')}catch(e){return null}},
+ set(v,rem){try{(rem?localStorage:sessionStorage).setItem(SK,JSON.stringify(v))}catch(e){}},
+ clear(){try{localStorage.removeItem(SK);sessionStorage.removeItem(SK)}catch(e){}}};
 const MAXB=40*1024,W=240;
 const RAT={'4x6':[4,6],'3x4':[3,4],'1x1':[1,1]},AR={'4x6':'2/3','3x4':'3/4','1x1':'1/1'},RL={'4x6':'4 x 6 (potret)','3x4':'3 x 4','1x1':'1 x 1 (persegi)'};
-const call=(fn,data)=>fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,key:KEY,data})}).then(r=>r.json());
+const call=(fn,data)=>fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,key:SES?'':KEY,session:SES||undefined,data})}).then(r=>r.json());
+const expired=r=>r&&(r.error==='session'||r.error==='unauthorized');
 const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
 const toB64=bl=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(bl)});
 // Editor potong: geser untuk memposisikan, slider untuk memperbesar; hasil dikompres sampai <= 40 KB
@@ -127,6 +146,8 @@ async function makeEditor(file,rasio){
    throw new Error('size')}}}
 
 const STAT=['Belum masuk','Sementara','Final'];
+const TFA=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
+function tsA(ms){const p={};TFA.formatToParts(new Date(ms)).forEach(x=>p[x.type]=x.value);return p.day+' '+p.month+' '+p.year+', '+p.hour+':'+p.minute+':'+p.second}
 let S={calon:[],desa:[]},TAB='v',FLASH='';
 const nf=n=>n==null||n===''?'':Number(n).toLocaleString('id-ID');
 const act=(k,d)=>S.calon.filter(c=>c.kecamatan===k&&c.desa===d&&c.aktif).sort((a,b)=>(+a.nomor_urut||99)-(+b.nomor_urut||99));
@@ -134,18 +155,33 @@ const inf=(k,d)=>S.desa.find(x=>x.kecamatan===k&&x.desa===d)||{status:STAT[0],up
 const opt=(t,v)=>{const o=el('option',null,t);o.value=v;return o};
 async function run(fn,data,m){m.className='st';m.textContent='Menyimpan...';
  try{const r=await call(fn,data);
-  if(r.error){m.textContent=r.error==='unauthorized'?'Sesi tidak valid atau terkunci. Muat ulang halaman.':r.error;return null}
+  if(r.error){if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return null}m.textContent=r.error;return null}
   S={calon:r.calon,desa:r.desa};return r}
  catch(e){m.textContent='Gagal terhubung. Coba lagi.';return null}}
-$('go').onclick=async()=>{KEY=$('key').value;$('msg').textContent='Memuat...';
- try{const r=await call('list');if(r.error){$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah.':r.error;return}
-  S={calon:r.calon,desa:r.desa};$('login').hidden=true;$('work').hidden=false;fillK()}catch(e){$('msg').textContent='Gagal terhubung.'}};
+function enter(r){S={calon:r.calon,desa:r.desa};$('login').hidden=true;$('work').hidden=false;$('hr').hidden=false;$('key').value='';KEY='';fillK()}
+$('go').onclick=async()=>{KEY=$('key').value;SES='';if(!KEY){$('msg').textContent='Isi kunci admin.';return}
+ $('go').disabled=true;$('msg').className='st';$('msg').textContent='Memuat...';
+ try{const r=await call('login');
+  if(r.error){$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah, atau terkunci 10 menit setelah 10 kali salah.':r.error;return}
+  if(r.session){SES=r.session;ls.set({session:r.session,exp:r.exp},$('rem').checked)}
+  enter(r)}catch(e){$('msg').textContent='Gagal terhubung. Periksa internet, lalu coba lagi.'}
+ finally{$('go').disabled=false}};
+function logout(msg){const s=SES;SES='';KEY='';ls.clear();
+ if(s)fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn:'logout',session:s})}).catch(()=>{});
+ $('work').hidden=true;$('hr').hidden=true;$('login').hidden=false;$('msg').className='st';$('msg').textContent=msg||'';$('key').focus()}
+$('out').onclick=()=>{if(PEND.size&&!confirm('Masih ada data yang sedang disimpan. Tetap keluar?'))return;logout('Anda sudah keluar.')};
+(async()=>{const v=ls.get();if(!v||!v.session||v.exp<Date.now()){ls.clear();return}
+ SES=v.session;$('msg').className='st';$('msg').textContent='Membuka panel admin...';$('go').disabled=true;
+ try{const r=await call('list');if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return}
+  if(r.error){$('msg').textContent=r.error;return}enter(r);$('msg').textContent=''}
+ catch(e){$('msg').textContent='Gagal terhubung. Muat ulang halaman untuk mencoba lagi.'}
+ finally{$('go').disabled=false}})();
 $('key').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
 function fillK(k,d){const ks=[...new Set(S.calon.map(c=>c.kecamatan))];
  $('fk').replaceChildren(...ks.map(x=>opt(x,x)));if(k&&ks.includes(k))$('fk').value=k;
  $('kl').replaceChildren(...ks.map(x=>opt('',x)));$('dl').replaceChildren(...[...new Set(S.calon.map(c=>c.desa))].map(x=>opt('',x)));fillD(d)}
 function fillD(d){const k=$('fk').value,ds=S.desa.filter(x=>x.kecamatan===k);
- $('fd').replaceChildren(...ds.map(x=>opt(x.desa+'  ('+x.status+')',x.desa)));if(d&&ds.some(x=>x.desa===d))$('fd').value=d;show()}
+ $('fd').replaceChildren(...ds.map(x=>opt(dlabel(x),x.desa)));if(d&&ds.some(x=>x.desa===d))$('fd').value=d;show()}
 $('fk').onchange=()=>fillD();$('fd').onchange=show;
 document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;
  document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
@@ -156,7 +192,8 @@ function show(){const c={};S.desa.forEach(x=>c[x.status]=(c[x.status]||0)+1);
 function vote(){
  const k=$('fk').value,d=$('fd').value,cs=act(k,d),i=inf(k,d),box=$('vform');
  if(!cs.length){box.replaceChildren(el('p','st','Desa ini belum punya calon aktif. Tambahkan atau aktifkan di tab Calon dan foto.'));return}
- const ins=[],pcs=[],tot=el('b','','0'),m=el('p','st',FLASH);if(FLASH)m.className='st ok';FLASH='';
+ const ins=[],pcs=[],tot=el('b','','0'),m=el('p','st',FLASH);m.dataset.msg='1';if(FLASH)m.className='st q';FLASH='';
+ if(!FLASH&&FAIL[k+'|'+d]){m.className='st';m.textContent='Belum tersimpan: '+FAIL[k+'|'+d].error}
  const rowsEl=cs.map((c,n)=>{const r=el('div','vr'),lb=el('label','vl'),x=el('input'),p=el('span','pc');
   x.type='number';x.min='0';x.step='1';x.inputMode='numeric';x.value=c.suara==null?'':c.suara;x.dataset.id=c.id;
   x.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();(ins[n+1]||b1).focus()}};
@@ -168,16 +205,50 @@ function vote(){
  ins.forEach(x=>x.oninput=calc);
  const b1=el('button','btn','Simpan'),b2=el('button','btn alt','Simpan dan lanjut ke desa berikutnya');b1.type=b2.type='button';
  const save=async next=>{b1.disabled=b2.disabled=true;const suara={};ins.forEach(x=>suara[x.dataset.id]=x.value.trim());
-  const r=await run('saveVotes',{kecamatan:k,desa:d,status:st.value,suara},m);b1.disabled=b2.disabled=false;if(!r)return;
-  FLASH='Tersimpan.';
+  b1.disabled=b2.disabled=false;
+  for(const c of cs){const v=suara[c.id];if(v!==''&&!/^\d{1,6}$/.test(v)){m.className='st';m.textContent='Suara '+proper(c.nama)+' harus angka bulat, 0 atau lebih.';return}}
+  if(st.value===STAT[2]&&cs.some(c=>suara[c.id]==='')){m.className='st';m.textContent='Status Final butuh suara semua calon terisi.';return}
+  enqueue({kecamatan:k,desa:d,status:st.value,suara});
+  FLASH='Sedang disimpan di latar belakang. Anda bisa lanjut mengisi.';
   if(next){const idx=S.desa.findIndex(x=>x.kecamatan===k&&x.desa===d),nx=S.desa.slice(idx+1).concat(S.desa.slice(0,idx)).find(x=>x.status===STAT[0]);
-   if(nx){fillK(nx.kecamatan,nx.desa);return}FLASH='Tersimpan. Semua desa sudah masuk.'}
+   if(nx){FLASH='Desa '+d+' disimpan di latar belakang. Silakan isi desa ini.';fillK(nx.kecamatan,nx.desa);return}FLASH='Sedang disimpan di latar belakang. Semua desa sudah terisi.'}
   fillK(k,d)};
  b1.onclick=()=>save(false);b2.onclick=()=>save(true);
  const tr=el('div','vr');tr.append(el('span','vl','Total suara'),tot);
  const bt=el('div','btns');bt.append(b1,b2);
- box.replaceChildren(el('p','nm',d+' · Kec. '+k),el('p','st','Terakhir diperbarui: '+(i.updated?new Date(i.updated).toLocaleString('id-ID',{timeZone:'Asia/Jakarta'})+' WIB':'belum ada')),
+ box.replaceChildren(el('p','nm',d+' · Kec. '+k),el('p','st','Terakhir diperbarui: '+(i.updated?tsA(i.updated)+' WIB':'belum ada')),
   ...rowsEl,tr,sl,bt,m);calc()}
+/* ---------- Antrean simpan suara: admin langsung lanjut, penyimpanan berjalan di belakang ---------- */
+const QUEUE=[],PEND=new Set(),FAIL={};let RUN=false;
+function applyLocal(j){const any=Object.values(j.suara).some(v=>v!=='');let st=j.status;if(!any)st=STAT[0];else if(st===STAT[0])st=STAT[1];
+ S.calon.forEach(c=>{if(c.kecamatan===j.kecamatan&&c.desa===j.desa&&j.suara.hasOwnProperty(c.id))c.suara=j.suara[c.id]===''?null:+j.suara[c.id]});
+ const x=S.desa.find(x=>x.kecamatan===j.kecamatan&&x.desa===j.desa);if(x){x.status=st;x.updated=Date.now()}}
+function enqueue(j){const key=j.kecamatan+'|'+j.desa;
+ for(let i=QUEUE.length-1;i>=0;i--)if(!QUEUE[i].sent&&QUEUE[i].kecamatan+'|'+QUEUE[i].desa===key)QUEUE.splice(i,1);   // simpan ulang desa sama: pakai yang terbaru
+ delete FAIL[key];PEND.add(key);applyLocal(j);QUEUE.push(j);syncUI();pump()}
+async function pump(){if(RUN)return;RUN=true;
+ while(QUEUE.length){const j=QUEUE[0],key=j.kecamatan+'|'+j.desa;j.sent=true;let r=null,err='';
+  try{r=await call('saveVotes',{kecamatan:j.kecamatan,desa:j.desa,status:j.status,suara:j.suara})}catch(e){err='Gagal terhubung'}
+  QUEUE.shift();
+  if(r&&expired(r)){QUEUE.unshift(j);j.sent=false;RUN=false;syncUI();logout('Sesi berakhir. Masuk lagi untuk menyimpan '+QUEUE.length+' desa yang tertunda.');return}
+  if(r&&r.ok){const x=S.desa.find(x=>x.kecamatan===r.kecamatan&&x.desa===r.desa);if(x){x.status=r.status;x.updated=r.updated}
+   S.calon.forEach(c=>{if(r.suara&&r.suara.hasOwnProperty(c.id))c.suara=r.suara[c.id]});
+   if(!QUEUE.some(q=>q.kecamatan+'|'+q.desa===key))PEND.delete(key)}
+  else{FAIL[key]={job:Object.assign({},j,{sent:false}),error:(r&&r.error)||err||'Gagal menyimpan'};if(!QUEUE.some(q=>q.kecamatan+'|'+q.desa===key))PEND.delete(key)}
+  syncUI(true)}
+ RUN=false}
+function dlabel(x){const k=x.kecamatan+'|'+x.desa;return x.desa+'  ('+x.status+')'+(FAIL[k]?' · GAGAL DISIMPAN':PEND.has(k)?' · menyimpan…':'')}
+function relabel(){const k=$('fk').value;[...$('fd').options].forEach(o=>{const x=S.desa.find(x=>x.kecamatan===k&&x.desa===o.value);if(x)o.textContent=dlabel(x)})}
+function syncUI(done){const n=PEND.size,f=Object.keys(FAIL),el2=$('sync');
+ el2.className='sync'+(n?' busy':f.length?' bad':'');
+ $('synct').textContent=n?'Menyimpan '+n+' desa…':f.length?f.length+' desa gagal':'Semua tersimpan';
+ $('fail').hidden=!f.length;
+ if(f.length)$('failt').textContent='Belum tersimpan: '+f.map(k=>k.split('|')[1]+' ('+FAIL[k].error+')').join(', ');
+ relabel();
+ const k=$('fk').value,d=$('fd').value,m=document.querySelector('#vform [data-msg]');   // pesan di form desa yang sedang dibuka, tanpa menggambar ulang form
+ if(m&&m.textContent.startsWith('Sedang')&&!PEND.has(k+'|'+d)){if(FAIL[k+'|'+d]){m.className='st';m.textContent='Gagal disimpan: '+FAIL[k+'|'+d].error}else{m.className='st ok';m.textContent='Tersimpan.'}}}
+$('retry').onclick=()=>{Object.values(FAIL).map(x=>x.job).forEach(enqueue)};
+addEventListener('beforeunload',e=>{if(PEND.size){e.preventDefault();e.returnValue=''}});
 function cards(){const k=$('fk').value,d=$('fd').value;
  $('list').replaceChildren(...S.calon.filter(c=>c.kecamatan===k&&c.desa===d).map(card))}
 function card(it){

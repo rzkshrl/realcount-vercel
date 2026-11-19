@@ -22,3 +22,18 @@ Env: `APPS_SCRIPT_URL` (URL /exec), `API_TOKEN` (sama). Setelah ubah env: Redepl
 - Nama calon tampil dengan huruf kapital di awal setiap kata; gelar sesudah koma dibiarkan seperti input. Nama yang disimpan dari /admin ikut dirapikan.
 - Label "Petahana" tidak ditampilkan di dashboard (masih bisa diatur di /admin).
 - Untuk warga: tombol Ikuti (desa tersimpan di HP), tombol Bagikan (WhatsApp/berbagi bawaan HP) dengan tautan langsung ke desa (`/#desa=Kecamatan|Desa`), data terakhir tersimpan agar tetap tampil saat sinyal lemah, kartu desa dimuat bertahap 24 per halaman, foto calon dimuat saat terlihat.
+
+## Pembaruan cepat (versi near real-time)
+Wajib dilakukan berurutan setelah update:
+1. Ganti seluruh isi Code.gs di Apps Script dengan `apps-script/Code.gs`, simpan.
+2. Jalankan `setupDB` sekali (membuat penanda revisi REV), lalu `diagnose` dan cek log.
+3. Deploy > Manage deployments > Edit > Version: **New version** > Deploy (URL /exec tetap sama).
+4. Push ke Vercel (redeploy otomatis).
+
+Cara kerja:
+- Dashboard mengecek `/api/data?v=1` (respons ~40 byte, cache CDN 3 dtk) tiap 8 dtk saat halaman terlihat; 30 dtk bila pengunjung diam lebih dari 10 menit; berhenti saat tab disembunyikan.
+- Data lengkap hanya diunduh kalau revisi berubah (`/api/data?rev=...`, cache CDN 10 menit per revisi).
+- Saat admin menyimpan suara, Apps Script langsung menambal cache dashboard, jadi publik melihat angka baru dalam kira-kira 5-15 detik.
+- Untuk menghemat kuota Vercel Hobby (1 juta edge request per bulan), naikkan `POLL_ACTIVE` di `public/index.html` (mis. 15000) bila pengunjung sangat banyak.
+- Admin: login sekali, sesi 14 hari disimpan di browser (bisa dimatikan dengan menghapus centang "Tetap masuk"). Tombol Keluar mengakhiri sesi. Menu Quick Count > "Keluarkan semua sesi admin" untuk mencabut semua perangkat.
+- Simpan suara berjalan di latar belakang: admin bisa langsung lanjut ke desa berikutnya; status penyimpanan tampil di kanan atas, desa yang gagal bisa dicoba lagi.
