@@ -31,7 +31,26 @@ input[type=range]{width:240px;max-width:100%;min-height:44px}
 .f{display:flex;flex-wrap:wrap;gap:var(--s3);align-items:flex-end}
 .f .nu{width:110px}.f .rs{width:130px}
 .ed{margin:var(--s3) 0}
-.ed canvas{display:block;width:240px;max-width:100%;height:auto;border:1px solid var(--line);border-radius:var(--r-sm);cursor:grab;touch-action:none}
+.ed{display:grid;grid-template-columns:auto minmax(200px,1fr);gap:var(--s4);align-items:start;padding:var(--s4);border:1px solid var(--line);border-radius:var(--r-lg);background:#fafbfb}
+.ed>.st{grid-column:1/-1;margin:0}
+.stg{background:repeating-conic-gradient(#e7e9ec 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:var(--r-sm);padding:6px}
+.ed canvas{display:block;width:260px;max-width:100%;height:auto;border-radius:4px;cursor:grab;touch-action:none;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.ed canvas:active{cursor:grabbing}
+.edt{display:grid;gap:var(--s3)}
+.rg{display:grid;grid-template-columns:70px 1fr 64px;align-items:center;gap:var(--s2);font-size:14px;color:var(--ink)}
+.rg input{width:100%;accent-color:#b5121b;min-height:36px}
+.rg output{font-variant-numeric:tabular-nums;text-align:right;color:var(--mut);font-size:13px}
+.edb{display:flex;flex-wrap:wrap;gap:var(--s2)}
+.btn.sm{min-height:40px;padding:0 var(--s3);font-size:14px}
+.btn.alt[aria-pressed=true]{background:var(--ink);color:#fff}
+.drop{position:relative;display:flex;align-items:center;gap:var(--s3);min-height:56px;padding:var(--s3) var(--s4);border:2px dashed rgba(29,27,23,.25);border-radius:var(--r-lg);background:#fff;color:var(--mut);font-size:14px;cursor:pointer;transition:border-color .15s,background .15s}
+.drop:hover,.drop:focus-within{border-color:#d4b34a;background:#fbf5e1}
+.drop b{color:var(--ink)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.card.dragging{outline:3px dashed #b5121b;outline-offset:-3px;background:#fbe9ea}
+.card.dragging .drop{border-color:#b5121b;background:#fbe9ea}
+.card.cal{position:relative}
+@media (max-width:640px){.ed{grid-template-columns:1fr}.ed canvas{width:100%}}
 .st{min-height:1.6em;margin:var(--s2) 0 0;color:var(--mut)}
 .st.ok{color:var(--fin)}
 [hidden]{display:none!important}
@@ -120,28 +139,59 @@ const call=(fn,data)=>fetch('/api/admin',{method:'POST',headers:{'Content-Type':
 const expired=r=>r&&(r.error==='session'||r.error==='unauthorized');
 const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
 const toB64=bl=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(bl)});
-// Editor potong: geser untuk memposisikan, slider untuk memperbesar; hasil dikompres sampai <= 40 KB
+// Editor foto: geser untuk memposisikan, roda/slider untuk memperbesar, putar 90° atau miring halus, grid sepertiga.
+// Hasil dikompres sampai <= 40 KB.
 async function makeEditor(file,rasio){
- const bmp=await createImageBitmap(file),iw=bmp.width,ih=bmp.height;
- const wrap=el('div','ed'),cv=el('canvas'),zl=el('label','','Perbesar'),zm=el('input');
- zm.type='range';zm.min='1';zm.max='3';zm.step='0.01';zm.value='1';zl.append(zm);
- wrap.append(cv,zl,el('p','st','Geser foto untuk mengatur potongan.'));
- let r=rasio,H,base,s,ox,oy,zoom=1;
- const dims=()=>{const[a,b]=RAT[r];H=Math.round(W*b/a);cv.width=W;cv.height=H;base=Math.max(W/iw,H/ih)};
- const clamp=()=>{ox=Math.min(0,Math.max(W-iw*s,ox));oy=Math.min(0,Math.max(H-ih*s,oy))};
- const draw=()=>{const x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,H);x.drawImage(bmp,ox,oy,iw*s,ih*s)};
- const keep=fn=>{const cx=(W/2-ox)/s,cy=(H/2-oy)/s;fn();s=base*zoom;ox=W/2-cx*s;oy=H/2-cy*s;clamp();draw()};
- dims();s=base;ox=(W-iw*s)/2;oy=(H-ih*s)*.15;clamp();draw();
- zm.oninput=()=>keep(()=>{zoom=+zm.value});
- let d=null;
- cv.onpointerdown=e=>{d=[e.clientX,e.clientY,ox,oy];cv.setPointerCapture(e.pointerId)};
- cv.onpointermove=e=>{if(!d)return;const k=W/cv.getBoundingClientRect().width;ox=d[2]+(e.clientX-d[0])*k;oy=d[3]+(e.clientY-d[1])*k;clamp();draw()};
- cv.onpointerup=cv.onpointercancel=()=>{d=null};
- return{el:wrap,setRatio(n){r=n;keep(dims)},
+ let bmp;try{bmp=await createImageBitmap(file,{imageOrientation:'from-image'})}catch(e){bmp=await createImageBitmap(file)}
+ const iw=bmp.width,ih=bmp.height,dpr=Math.min(2,window.devicePixelRatio||1);
+ const wrap=el('div','ed'),stage=el('div','stg'),cv=el('canvas'),tools=el('div','edt');
+ cv.tabIndex=0;cv.setAttribute('role','img');cv.setAttribute('aria-label','Pratinjau potongan foto. Geser dengan mouse, jari, atau tombol panah.');
+ const mk=(lab,min,max,step,val)=>{const l=el('label','rg'),t=el('span',null,lab),o=el('output'),i=el('input');i.type='range';i.min=min;i.max=max;i.step=step;i.value=val;l.append(t,i,o);return{l,i,o}};
+ const Z=mk('Perbesar',1,4,.01,1),A=mk('Miring',-45,45,.5,0);
+ const bt=(t,lab,fn)=>{const b=el('button','btn alt sm',t);b.type='button';b.setAttribute('aria-label',lab);b.onclick=fn;return b};
+ const gridB=bt('Grid','Tampilkan atau sembunyikan grid',()=>{grid=!grid;gridB.setAttribute('aria-pressed',String(grid));draw()});
+ const row=el('div','edb');
+ row.append(bt('⟲ 90°','Putar 90 derajat ke kiri',()=>{quarter=(quarter+3)%4;fit()}),bt('⟳ 90°','Putar 90 derajat ke kanan',()=>{quarter=(quarter+1)%4;fit()}),gridB,bt('Atur ulang','Kembalikan posisi, perbesaran, dan putaran awal',()=>{quarter=0;fine=0;zoom=1;A.i.value=0;Z.i.value=1;px=0;py=0;fit()}));
+ tools.append(Z.l,A.l,row);
+ stage.append(cv);wrap.append(stage,tools,el('p','st','Geser foto untuk mengatur potongan. Garis bantu membagi foto menjadi tiga bagian.'));
+ let r=rasio,W=260,H,zoom=1,quarter=0,fine=0,px=0,py=0,grid=true,drag=false,ptr=new Map(),pinch=null;
+ const ang=()=>(quarter*90+fine)*Math.PI/180;
+ const base=()=>{const a=ang(),c=Math.abs(Math.cos(a)),s=Math.abs(Math.sin(a));return Math.max((W*c+H*s)/iw,(W*s+H*c)/ih)};
+ const sc=()=>base()*zoom;
+ const dims=()=>{const[a,b]=RAT[r];H=Math.round(W*b/a);cv.width=W*dpr;cv.height=H*dpr;cv.style.aspectRatio=W+'/'+H};
+ // jaga agar bingkai selalu tertutup foto: posisi pusat bingkai di koordinat foto dibatasi
+ const clamp=()=>{const a=ang(),s=sc(),c=Math.abs(Math.cos(a)),n=Math.abs(Math.sin(a));
+  const hx=(W*c+H*n)/(2*s),hy=(W*n+H*c)/(2*s),cos=Math.cos(-a),sin=Math.sin(-a);
+  let ux=(-px*cos+py*sin)/s,uy=(-px*sin-py*cos)/s;                     // pusat bingkai di ruang foto
+  ux=Math.max(-(iw/2-hx),Math.min(iw/2-hx,ux));uy=Math.max(-(ih/2-hy),Math.min(ih/2-hy,uy));
+  const c2=Math.cos(a),s2=Math.sin(a);px=-(ux*c2-uy*s2)*s;py=-(ux*s2+uy*c2)*s};
+ const paint=(ctx,k)=>{ctx.setTransform(k,0,0,k,0,0);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  ctx.imageSmoothingQuality='high';ctx.translate(W/2+px,H/2+py);ctx.rotate(ang());const s=sc();ctx.scale(s,s);ctx.drawImage(bmp,-iw/2,-ih/2)};
+ const draw=()=>{const x=cv.getContext('2d');paint(x,dpr);
+  if(!grid&&!drag)return;x.setTransform(dpr,0,0,dpr,0,0);x.lineWidth=1;
+  x.strokeStyle=drag?'rgba(255,255,255,.95)':'rgba(255,255,255,.75)';x.shadowColor='rgba(0,0,0,.45)';x.shadowBlur=2;x.beginPath();
+  for(const f of [1/3,2/3]){x.moveTo(Math.round(W*f)+.5,0);x.lineTo(Math.round(W*f)+.5,H);x.moveTo(0,Math.round(H*f)+.5);x.lineTo(W,Math.round(H*f)+.5)}
+  x.stroke();if(drag&&fine){x.strokeStyle='rgba(255,255,255,.35)';x.beginPath();for(let i=1;i<6;i++){if(i%2===0)continue;x.moveTo(W*i/6+.5,0);x.lineTo(W*i/6+.5,H);x.moveTo(0,H*i/6+.5);x.lineTo(W,H*i/6+.5)}x.stroke()}};
+ const fit=()=>{clamp();draw();Z.o.textContent=zoom.toFixed(2)+'×';A.o.textContent=(fine>0?'+':'')+fine+'°'+(quarter?' (+'+quarter*90+'°)':'')};
+ dims();py=-(0)*1;fit();gridB.setAttribute('aria-pressed','true');
+ // posisi awal sedikit ke atas (wajah biasanya di bagian atas foto)
+ {const s=sc(),room=Math.max(0,ih*s-H)/2;py=room*.7;fit()}
+ Z.i.oninput=()=>{zoom=+Z.i.value;fit()};
+ A.i.oninput=()=>{fine=+A.i.value;drag=true;fit()};A.i.onchange=A.i.onpointerup=()=>{drag=false;draw()};
+ const kz=()=>W/cv.getBoundingClientRect().width;
+ cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);drag=true;
+  if(ptr.size===2){const[p1,p2]=[...ptr.values()];pinch={d:Math.hypot(p1[0]-p2[0],p1[1]-p2[1]),z:zoom}}draw()};
+ cv.onpointermove=e=>{if(!ptr.has(e.pointerId))return;const pv=ptr.get(e.pointerId);ptr.set(e.pointerId,[e.clientX,e.clientY]);
+  if(ptr.size===2&&pinch){const[p1,p2]=[...ptr.values()];zoom=Math.max(1,Math.min(4,pinch.z*Math.hypot(p1[0]-p2[0],p1[1]-p2[1])/pinch.d));Z.i.value=zoom;fit();return}
+  const k=kz();px+=(e.clientX-pv[0])*k;py+=(e.clientY-pv[1])*k;fit()};
+ cv.onpointerup=cv.onpointercancel=e=>{ptr.delete(e.pointerId);if(ptr.size<2)pinch=null;if(!ptr.size){drag=false;draw()}};
+ cv.onwheel=e=>{e.preventDefault();zoom=Math.max(1,Math.min(4,zoom*(e.deltaY<0?1.08:1/1.08)));Z.i.value=zoom;fit()};
+ cv.onkeydown=e=>{const m={ArrowLeft:[-4,0],ArrowRight:[4,0],ArrowUp:[0,-4],ArrowDown:[0,4]}[e.key];if(!m)return;e.preventDefault();px+=m[0]*(e.shiftKey?4:1);py+=m[1]*(e.shiftKey?4:1);fit()};
+ return{el:wrap,setRatio(n){r=n;dims();fit()},
   async out(){const[a,b]=RAT[r];
    for(const L of [480,400,320,260,200,160,128]){
     const ow=a>=b?L:Math.round(L*a/b),oh=a>=b?Math.round(L*b/a):L,c=document.createElement('canvas');c.width=ow;c.height=oh;
-    const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,ow,oh);x.drawImage(bmp,-ox/s,-oy/s,W/s,H/s,0,0,ow,oh);
+    paint(c.getContext('2d'),ow/W);
     for(let q=.85;q>=.35;q-=.1){const bl=await toBlob(c,q);if(bl.size<=MAXB)return{blob:bl,b64:await toB64(bl)}}}
    throw new Error('size')}}}
 
@@ -248,6 +298,7 @@ function syncUI(done){const n=PEND.size,f=Object.keys(FAIL),el2=$('sync');
  const k=$('fk').value,d=$('fd').value,m=document.querySelector('#vform [data-msg]');   // pesan di form desa yang sedang dibuka, tanpa menggambar ulang form
  if(m&&m.textContent.startsWith('Sedang')&&!PEND.has(k+'|'+d)){if(FAIL[k+'|'+d]){m.className='st';m.textContent='Gagal disimpan: '+FAIL[k+'|'+d].error}else{m.className='st ok';m.textContent='Tersimpan.'}}}
 $('retry').onclick=()=>{Object.values(FAIL).map(x=>x.job).forEach(enqueue)};
+['dragover','drop'].forEach(t=>addEventListener(t,e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()}));
 addEventListener('beforeunload',e=>{if(PEND.size){e.preventDefault();e.returnValue=''}});
 function cards(){const k=$('fk').value,d=$('fd').value;
  $('list').replaceChildren(...S.calon.filter(c=>c.kecamatan===k&&c.desa===d).map(card))}
@@ -260,14 +311,26 @@ function card(it){
  const ml=el('label','nmf','Nama calon'),nm=el('input');nm.type='text';nm.maxLength=80;nm.value=proper(it.nama);ml.append(nm);
  const nl=el('label','nu','Nomor urut'),num=el('input');num.type='number';num.min='1';num.max='99';num.value=it.nomor_urut||'';nl.append(num);
  const rl=el('label','rs','Rasio foto'),rs=el('select');Object.keys(RAT).forEach(x=>rs.append(opt(RL[x],x)));rs.value=it.rasio||'4x6';rl.append(rs);
- const fl=el('label','','Foto baru (JPG/PNG)'),file=el('input');file.type='file';file.accept='image/*';fl.append(file);
+ const fl=el('label','drop'),file=el('input');file.type='file';file.accept='image/*';
+ fl.innerHTML='<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><span><b>Pilih foto</b> atau seret ke kartu ini · bisa juga tempel (Ctrl+V)</span>';
+ fl.append(file);
  const pl=el('label','ck'),pe=el('input');pe.type='checkbox';pe.checked=it.petahana;pl.append(pe,' Petahana');
  const al=el('label','ck'),ae=el('input');ae.type='checkbox';ae.checked=it.aktif;al.append(ae,' Aktif (tampil di dashboard)');
  const btn=el('button','btn','Simpan');btn.type='button';
  let ed=null;
- file.onchange=async()=>{if(!file.files[0])return;st.className='st';
-  try{if(ed)ed.el.remove();ed=await makeEditor(file.files[0],rs.value);b.insertBefore(ed.el,st);st.textContent=''}
-  catch(e){ed=null;st.textContent='Gagal membaca foto. Gunakan JPG atau PNG.'}};
+ const load=async f=>{if(!f)return;st.className='st';
+  if(!/^image\//.test(f.type)&&!/\.(jpe?g|png|webp|heic|heif)$/i.test(f.name||'')){st.textContent='File itu bukan foto. Gunakan JPG atau PNG.';return}
+  st.textContent='Membuka foto...';
+  try{const nx=await makeEditor(f,rs.value);if(ed)ed.el.remove();ed=nx;b.insertBefore(ed.el,st);st.textContent='';ed.el.querySelector('canvas').focus({preventScroll:true});ed.el.scrollIntoView({block:'nearest',behavior:'smooth'})}
+  catch(e){st.textContent=/heic|heif/i.test(f.type+f.name)?'Foto HEIC dari iPhone belum bisa dibuka. Ubah ke JPG dulu, atau kirim lewat WhatsApp lalu simpan.':'Gagal membaca foto. Gunakan JPG atau PNG.'}};
+ file.onchange=()=>load(file.files[0]);
+ let dd=0;
+ c.addEventListener('dragenter',e=>{if(![...e.dataTransfer.types].includes('Files'))return;e.preventDefault();dd++;c.classList.add('dragging')});
+ c.addEventListener('dragover',e=>{if(![...e.dataTransfer.types].includes('Files'))return;e.preventDefault();e.dataTransfer.dropEffect='copy'});
+ c.addEventListener('dragleave',()=>{if(--dd<=0){dd=0;c.classList.remove('dragging')}});
+ c.addEventListener('drop',e=>{e.preventDefault();dd=0;c.classList.remove('dragging');const f=[...e.dataTransfer.files].find(x=>/^image\//.test(x.type))||e.dataTransfer.files[0];load(f)});
+ c.tabIndex=-1;c.addEventListener('paste',e=>{const it2=[...(e.clipboardData||{}).items||[]].find(x=>x.kind==='file'&&/^image\//.test(x.type));if(it2){e.preventDefault();load(it2.getAsFile())}});
+ c.addEventListener('pointerdown',e=>{if(!e.target.closest('input,select,button,canvas,label'))c.focus({preventScroll:true})});
  rs.onchange=()=>{ph.style.setProperty('--ar',AR[rs.value]);if(ed)ed.setRatio(rs.value)};
  btn.onclick=async()=>{btn.disabled=true;
   const data={id:it.id,nama:proper(nm.value),petahana:pe.checked,aktif:ae.checked,nomor_urut:num.value.trim(),rasio:rs.value};let kb='';
