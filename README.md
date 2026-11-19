@@ -31,8 +31,8 @@ Wajib dilakukan berurutan setelah update:
 4. Push ke Vercel (redeploy otomatis).
 
 Cara kerja:
-- Dashboard mengecek `/api/data?v=1` (respons ~40 byte, cache CDN 3 dtk) tiap 8 dtk saat halaman terlihat; 30 dtk bila pengunjung diam lebih dari 10 menit; berhenti saat tab disembunyikan.
-- Data lengkap hanya diunduh kalau revisi berubah (`/api/data?rev=...`, cache CDN 10 menit per revisi).
+- Dashboard mengecek `/api/rev` (respons ~40 byte, cache CDN 2 dtk) tiap 8 dtk saat halaman terlihat; 30 dtk bila pengunjung diam lebih dari 10 menit; berhenti saat tab disembunyikan.
+- Data lengkap (`/api/data`, cache CDN 2 dtk) hanya diunduh kalau revisi berubah, plus pengaman tiap 5 menit.
 - Saat admin menyimpan suara, Apps Script langsung menambal cache dashboard, jadi publik melihat angka baru dalam kira-kira 5-15 detik.
 - Untuk menghemat kuota Vercel Hobby (1 juta edge request per bulan), naikkan `POLL_ACTIVE` di `public/index.html` (mis. 15000) bila pengunjung sangat banyak.
 - Admin: login sekali, sesi 14 hari disimpan di browser (bisa dimatikan dengan menghapus centang "Tetap masuk"). Tombol Keluar mengakhiri sesi. Menu Quick Count > "Keluarkan semua sesi admin" untuk mencabut semua perangkat.

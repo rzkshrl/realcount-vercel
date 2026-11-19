@@ -19,7 +19,7 @@ const HEAD = {
   LOG: ['waktu', 'jenis', 'kecamatan', 'desa', 'calon', 'lama', 'baru']
 };
 const SESSION_DAYS = 14;
-const CHUNK = 45000;          // karakter per bagian cache (batas CacheService 100 KB per nilai)
+const CHUNK = 30000;          // karakter per bagian cache (batas CacheService 100 KB per nilai, aman untuk huruf non-ASCII)
 const CACHE_SEC = 21600;      // 6 jam (maksimum CacheService)
 
 function onOpen() {
@@ -137,6 +137,8 @@ function photoUrl_(v) {
 function getDashboardData() {
   const hit = cacheGet_();
   if (hit) return hit;
+  const sp = PropertiesService.getScriptProperties();
+  const rev0 = Number(sp.getProperty('REV') || 0);       // dibaca SEBELUM sheet: data tidak pernah diberi revisi yang lebih baru dari isinya
   const ss = db_(), votes = {}, dst = {}, map = {};
   let last = 0;
   rows_(ss.getSheetByName(SH.VOTE)).forEach(r => votes[r.calon_id] = r);
@@ -158,8 +160,9 @@ function getDashboardData() {
   });
   const desa = Object.values(map);
   desa.forEach(d => d.calon.sort((a, b) => (+a.nomor_urut || 99) - (+b.nomor_urut || 99)));
-  const res = { desa: desa, last: last, rev: Number(PropertiesService.getScriptProperties().getProperty('REV') || 0) };
-  cachePut_(res);
+  const res = { desa: desa, last: last, rev: rev0 };
+  // simpan ke cache hanya bila tidak ada penyimpanan admin selama sheet dibaca (kalau ada, data ini mungkin sudah usang)
+  if (Number(sp.getProperty('REV') || 0) === rev0) cachePut_(res);
   return res;
 }
 
