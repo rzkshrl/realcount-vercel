@@ -45,3 +45,8 @@ Cara kerja:
 - Semua perubahan dikirim sekaligus (maks 25 desa per permintaan) lewat `saveVotesBatch` di Code.gs; desa yang gagal tetap ditandai dan bisa disimpan ulang.
 - Perubahan yang belum disimpan bertahan selama tab terbuka (juga kalau halaman dimuat ulang).
 - Foto calon: seret file ke kartu calon, atau tempel (Ctrl+V). Editor punya grid sepertiga, putar 90°, miring ±45°, perbesar (slider/roda/cubit), geser (mouse/jari/panah).
+
+## Sinkron lebih cepat (catatan perubahan)
+- Setiap simpan suara, Apps Script mencatat desa yang berubah (60 detik terakhir) di cache `chg`. `/api/rev` ikut membawa catatan ini.
+- Dashboard menerapkan catatan itu langsung (tanpa mengunduh data lengkap) bila rantai revisinya utuh. Kalau tidak utuh (misalnya calon/foto diubah, reset, edit manual di sheet), dashboard otomatis mengunduh data lengkap.
+- Polling adaptif: 5 dtk selama 2 menit setelah ada perubahan, 8 dtk normal, 30 dtk bila pengunjung diam > 10 menit, berhenti saat tab disembunyikan.

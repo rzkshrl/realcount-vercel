@@ -1,6 +1,10 @@
 // Vercel Serverless Function: ambil JSON dari Apps Script (tanpa Google Cloud), cache di CDN.
-// /api/rev  (atau /api/data?v=1) -> {rev,last} kecil, cache CDN 2 dtk. Dashboard mengecek ini tiap beberapa detik.
+// /api/rev  (atau /api/data?v=1) -> {rev,last,chg} kecil, cache CDN 2 dtk. chg = desa yang berubah dalam 60 dtk terakhir.
 // /api/data                       -> data lengkap terbaru, cache CDN 2 dtk. Hanya diambil saat revisi berubah.
+// foto Drive lewat proxy /api/foto (di-cache CDN)
+const fixFoto = x => (x.calon || []).forEach(c => {
+  c.foto = String(c.foto || '').replace(/^https:\/\/drive\.google\.com\/thumbnail\?id=([\w-]+).*$/, '/api/foto?id=$1');
+});
 const clean = v => String(v || '').trim().replace(/^["']|["']$/g, '');   // buang spasi/tanda kutip hasil copy-paste
 const handler = async (req, res, forceRev) => {
   try {
@@ -21,13 +25,12 @@ const handler = async (req, res, forceRev) => {
     if (d.error === 'unauthorized') return res.status(502).json({ error: 'token', hint: 'API_TOKEN di Vercel tidak sama dengan Script property API_TOKEN.' });
     if (d.error) throw new Error(d.error);
     if (onlyRev) {
+      const chg = Array.isArray(d.chg) ? d.chg : [];
+      chg.forEach(e => (e.d || []).forEach(fixFoto));
       res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=2, stale-while-revalidate=4');
-      return res.status(200).json({ rev: d.rev || 0, last: d.last || 0 });
+      return res.status(200).json({ rev: d.rev || 0, last: d.last || 0, chg: chg });
     }
-    // foto Drive lewat proxy /api/foto (di-cache CDN)
-    (d.desa || []).forEach(x => x.calon.forEach(c => {
-      c.foto = String(c.foto || '').replace(/^https:\/\/drive\.google\.com\/thumbnail\?id=([\w-]+).*$/, '/api/foto?id=$1');
-    }));
+    (d.desa || []).forEach(fixFoto);
     res.setHeader('Cache-Control', 'public, max-age=0, s-maxage=2, stale-while-revalidate=4');
     res.status(200).json(d);
   } catch (e) {

@@ -66,11 +66,37 @@ function cacheGet_() {
 function dropDash_() { CacheService.getScriptCache().removeAll(['dash', 'dash_n']); }
 
 /** Tandai ada perubahan. Dashboard mengecek angka ini tiap beberapa detik. */
-function bumpRev_(last, rev) {
+function bumpRev_(last, rev, rows) {
+  const sp = PropertiesService.getScriptProperties(), prev = Number(sp.getProperty('REV') || 0);
   const o = { REV: String(rev || Date.now()) };
   if (last != null) o.LAST = String(last);
-  PropertiesService.getScriptProperties().setProperties(o);
+  pushChg_(prev, Number(o.REV), rows || null);          // catatan perubahan dulu, baru REV diumumkan
+  sp.setProperties(o);
   return Number(o.REV);
+}
+
+/** Catatan perubahan terbaru (maks 60 detik, ~30 KB). Dashboard memakai ini untuk memperbarui desa yang berubah saja,
+ *  tanpa mengunduh data lengkap. rows = null artinya "muat ulang semua" (calon/foto diubah, reset, edit manual). */
+const CHG_MS = 60000, CHG_MAX = 30000;
+function pushChg_(prev, rev, rows) {
+  const c = CacheService.getScriptCache();
+  let list = [];
+  try { list = JSON.parse(c.get('chg') || '[]'); } catch (e) {}
+  list.push({ p: prev, r: rev, d: rows });
+  list = list.filter(x => x.r > rev - CHG_MS).slice(-15);
+  let s = JSON.stringify(list);
+  while (s.length > CHG_MAX && list.length > 1) { list.shift(); s = JSON.stringify(list); }
+  if (s.length > CHG_MAX) s = JSON.stringify([{ p: prev, r: rev, d: null }]);
+  try { c.put('chg', s, 600); } catch (e) {}
+}
+function readChg_() { try { return JSON.parse(CacheService.getScriptCache().get('chg') || '[]'); } catch (e) { return []; } }
+
+/** Baris desa dalam bentuk yang sama dengan getDashboardData, dari data yang baru disimpan */
+function desaRow_(cs, kec, desa, status, t, vals) {
+  return { kecamatan: kec, desa: desa, status: status, updated: t,
+    calon: cs.map(r => ({ id: r.id, nama: r.nama_calon, petahana: isYa_(r.petahana), nomor_urut: r.nomor_urut || '',
+      foto: photoUrl_(r.foto_url), rasio: r.foto_rasio || '4x6', suara: vals[r.id] === '' || vals[r.id] == null ? null : vals[r.id] }))
+      .sort((a, b) => (+a.nomor_urut || 99) - (+b.nomor_urut || 99)) };
 }
 
 /** 1) Siapkan / rapikan database. Aman dijalankan berulang (juga untuk Config_Calon versi lama). */
@@ -122,7 +148,7 @@ function doGet(e) {
   if (p.mode === 'rev') {
     let rev = Number(sp.getProperty('REV') || 0), last = sp.getProperty('LAST');
     if (!rev || last == null) { rev = bumpRev_(); dropDash_(); last = getDashboardData().last; sp.setProperty('LAST', String(last)); }
-    return json_({ rev: rev, last: Number(last) });
+    return json_({ rev: rev, last: Number(last), chg: readChg_() });
   }
   return json_(getDashboardData());
 }
@@ -305,7 +331,7 @@ function saveVotes_(d) {
   log_(log);
   const t = now.getTime(), rev = Date.now();
   patchDash_(d, status, t, vals, rev);                    // cache ditambal dulu, baru REV diumumkan
-  bumpRev_(t, rev);
+  bumpRev_(t, rev, [desaRow_(cs, d.kecamatan, d.desa, status, t, vals)]);
   const suara = {}; Object.keys(vals).forEach(k => suara[k] = vals[k] === '' ? null : vals[k]);
   return { ok: true, info: 'Tersimpan.', kecamatan: d.kecamatan, desa: d.desa, status: status, updated: t, suara: suara };
 }
@@ -352,7 +378,7 @@ function saveVotesBatch_(d) {
     } else if (i == null) { log.push([now, 'status', it.kecamatan, it.desa, '', '', status]); dadd.push([it.kecamatan, it.desa, status, now]); dpos[k] = -1; }
     const suara = {}; Object.keys(vals).forEach(id => suara[id] = vals[id] === '' ? null : vals[id]);
     Object.assign(out, { ok: true, status: status, updated: t, suara: suara });
-    results.push(out); patches.push({ d: it, status: status, vals: vals });
+    results.push(out); patches.push({ d: it, status: status, vals: vals, row: desaRow_(cs, it.kecamatan, it.desa, status, t, vals) });
   });
   if (voteDirty && cur.length > 1) vs.getRange(2, 1, cur.length - 1, 3).setValues(cur.slice(1).map(r => [r[0], r[1], r[2]]));
   if (add.length) vs.getRange(vs.getLastRow() + 1, 1, add.length, 3).setValues(add);
@@ -363,7 +389,7 @@ function saveVotesBatch_(d) {
   if (saved) {
     const rev = Date.now();
     patchDashMany_(patches, t, rev);                     // cache ditambal dulu, baru REV diumumkan
-    bumpRev_(t, rev);
+    bumpRev_(t, rev, patches.map(x => x.row));
   }
   return { ok: true, info: saved + ' desa tersimpan.', results: results };
 }

@@ -161,7 +161,17 @@ button.ph:hover img{transform:scale(1.03)}
 .ib[aria-pressed=true] svg{fill:currentColor}
 .more{display:flex;justify-content:center;margin-top:var(--s6)}
 .empty{color:var(--mut)}
-.sk{background:rgba(42,41,53,.08);border-radius:var(--r-lg);animation:pulse 1.4s ease-in-out infinite}
+.sk{position:relative;overflow:hidden;background:rgba(42,41,53,.07);border-radius:var(--r-lg)}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);animation:shim 1.3s ease-in-out infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+.tp{position:fixed;left:0;right:0;top:0;z-index:70;height:3px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s}
+.tp.on{opacity:1}
+.tp i{position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,var(--gold),var(--red2),var(--gold));border-radius:0 2px 2px 0;animation:tpm 1.1s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes tpm{0%{transform:translateX(-100%) scaleX(.6)}60%{transform:translateX(120%) scaleX(1)}100%{transform:translateX(260%) scaleX(.6)}}
+.rf.busy{color:transparent;position:relative;pointer-events:none}
+.rf.busy::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border:2px solid var(--red);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+.loadmsg{display:flex;align-items:center;justify-content:center;gap:var(--s3);grid-column:1/-1;padding:var(--s5);color:var(--mut);font-weight:600}
+.loadmsg::before{content:"";width:18px;height:18px;border:2.5px solid var(--red);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
 .enter{animation:rise .45s var(--ease) both}
 /* tanda setiap data baru masuk */
 .cal{position:relative;isolation:isolate;overflow:clip}
@@ -231,6 +241,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
 </head>
 <body>
 <a class="skip" href="#main">Lewati ke konten</a>
+<div class="tp" id="tp" aria-hidden="true"><i></i></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
  <defs>
@@ -308,7 +319,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
    </div>
    <div class="pills" id="sp" role="group" aria-label="Saring menurut status"></div>
    <p class="count" id="cnt" aria-live="polite"></p>
-   <div class="grid" id="grid"><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div></div>
+   <div class="grid" id="grid"><p class="loadmsg">Memuat hasil tiap desa...</p><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div><div class="sk" style="height:300px"></div></div>
    <div class="more"><button class="btn" id="more" type="button" hidden></button></div>
   </section>
  </div>
@@ -342,8 +353,8 @@ const PAGE=24;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let D=null,FS='',FIRST=true,SHOW=PAGE,FOCUS='',PIN=new Set(store.get('qc-pin',[])),FROMCACHE=false;
 /* Cek perubahan: permintaan kecil tiap POLL_ACTIVE; data lengkap hanya diambil kalau ada perubahan */
-const POLL_ACTIVE=8000,POLL_IDLE=30000,IDLE_AFTER=10*60e3;
-let MARK=0,RETRY=false,FULLAT=0,CHECKING=false,TIMER=0,LASTACT=Date.now(),TRIES={},PREV=new Map(),CHG=new Map(),UPD=false,KPREV=null,CHECKED=0;
+const POLL_HOT=5000,POLL_ACTIVE=8000,POLL_IDLE=30000,IDLE_AFTER=10*60e3,HOT_FOR=2*60e3;   // HOT: 2 menit setelah ada perubahan (penghitungan sedang aktif)
+let MARK=0,RETRY=false,FULLAT=0,HOTAT=0,TPN=0,CHECKING=false,TIMER=0,LASTACT=Date.now(),TRIES={},PREV=new Map(),CHG=new Map(),UPD=false,KPREV=null,CHECKED=0;
 
 /* Nama calon: Huruf Kapital di Awal Setiap Kata. Gelar sesudah koma dibiarkan seperti input. */
 function proper(s){s=String(s||'').trim().replace(/\s+/g,' ');if(!s)return s;
@@ -371,24 +382,37 @@ function stamp(){return D&&D.last?'Pembaruan terakhir '+ts(D.last)+' WIB':'Belum
 function apply(d){const fresh=prep(d),next=snapshot(fresh);CHG=new Map();
  if(D&&!FIRST){next.forEach((v,k)=>{if(PREV.has(k)&&PREV.get(k)!==v)CHG.set(k,{from:PREV.get(k)||0,to:v||0})});UPD=true}
  PREV=next;store.set('qc-cache',d);D=fresh;init();render();UPD=false;CHG=new Map();FIRST=false}
-async function loadFull(m){const d=await getData(m);
+function tp(on){TPN=Math.max(0,TPN+(on?1:-1));$('tp').classList.toggle('on',TPN>0)}
+/* Terapkan catatan perubahan (desa yang berubah saja). Berhasil hanya kalau rantai revisi utuh dari MARK sampai m. */
+function applyDelta(v,m){if(!D||FROMCACHE||!Array.isArray(v.chg)||!v.chg.length)return false;
+ const list=[...v.chg].sort((a,b)=>a.r-b.r),rows=new Map();let cur=MARK;
+ for(const e of list){if(e.r<=cur)continue;if(e.p!==cur||!Array.isArray(e.d))return false;e.d.forEach(x=>rows.set(key(x),x));cur=e.r}
+ if(cur!==m)return false;
+ let last=Number(D.last)||0;const seen=new Set();
+ const desa=D.desa.map(x=>{const k=key(x),n=rows.get(k);if(!n)return x;seen.add(k);last=Math.max(last,n.updated||0);return n});
+ rows.forEach((n,k)=>{if(!seen.has(k)){desa.push(n);last=Math.max(last,n.updated||0)}});
+ apply({desa,last,rev:m});MARK=m;RETRY=false;return true}
+async function loadFull(m){tp(true);let d;try{d=await getData(m)}finally{tp(false)}
  const isNew=!!D&&!FROMCACHE&&markOf(d)!==markOf(D);
  try{apply(d)}catch(e){console.error('render',e);UPD=false;CHG=new Map();throw e}     // gagal tampil: MARK tidak maju, dicoba lagi
  FROMCACHE=false;FULLAT=Date.now();
  RETRY=!!(m&&markOf(d)<m&&(TRIES[m]=(TRIES[m]||0)+1)<6);MARK=RETRY?markOf(d):Math.max(m||0,markOf(d));   // data belum memuat revisi terbaru: ulangi 3 dtk lagi
  return isNew}
-async function check(force){if(CHECKING)return;CHECKING=true;clearTimeout(TIMER);
+async function check(force){if(CHECKING)return;CHECKING=true;clearTimeout(TIMER);if(force)$('rf').classList.add('busy');
  const dot=$('live').querySelector('.dot');dot.classList.remove('tick');void dot.offsetWidth;dot.classList.add('tick');
  if(!D||force)setLive('busy');
  try{const v=await getJSON('/api/rev'),m=Number(v.rev||v.last||0);CHECKED=Date.now();
-  if(!D||FROMCACHE||force||m!==MARK||Date.now()-FULLAT>5*60e3){const isNew=await loadFull(m);setLive('ok',stamp());if(isNew){const l=$('live');l.classList.remove('new');void l.offsetWidth;l.classList.add('new')}}
+  const flash=()=>{HOTAT=Date.now();const l=$('live');l.classList.remove('new');void l.offsetWidth;l.classList.add('new')};
+  if(!force&&m!==MARK&&applyDelta(v,m)){setLive('ok',stamp());flash()}                       // cepat: hanya desa yang berubah
+  else if(!D||FROMCACHE||force||m!==MARK||Date.now()-FULLAT>5*60e3){const isNew=await loadFull(m);setLive('ok',stamp());if(isNew)flash()}
   else setLive('ok',stamp());
   $('ck').textContent='dicek '+ts(CHECKED).split(', ')[1];$('live').title='Terakhir dicek '+ts(CHECKED)+' WIB'}
  catch(e){if(D)setLive('off',(FROMCACHE?'Data tersimpan · ':'')+stamp()+' · gagal memperbarui');else showErr()}
- finally{CHECKING=false;schedule()}}
+ finally{CHECKING=false;$('rf').classList.remove('busy');schedule()}}
 function schedule(){clearTimeout(TIMER);if(document.hidden)return;
  const idle=Date.now()-LASTACT>IDLE_AFTER;
- TIMER=setTimeout(check,(RETRY?3000:idle?POLL_IDLE:POLL_ACTIVE)+Math.random()*1500)}
+ const hot=Date.now()-HOTAT<HOT_FOR;
+ TIMER=setTimeout(check,(RETRY?3000:idle?POLL_IDLE:hot?POLL_HOT:POLL_ACTIVE)+Math.random()*1000)}
 const load=()=>check(true);
 function showErr(){setLive('off','Gagal memuat data');if($('grid').querySelector('.card'))return;
  const b=el('button','btn','Coba lagi');b.type='button';b.onclick=load;

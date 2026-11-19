@@ -121,10 +121,24 @@ kbd{font:600 12px/1 "Jakarta",system-ui;padding:2px 6px;border:1px solid var(--l
 #gdlg::backdrop{background:rgba(29,27,23,.6)}
 #gdlg ul{padding-left:1.2em;font-variant-numeric:tabular-nums;font-weight:600}
 @media (max-width:760px){.ghelp{display:none}.gr{grid-template-columns:1fr}.gc{display:grid;grid-template-columns:1fr 1fr}.gi{width:auto}.gside{justify-content:space-between}.gst{flex:1}.gst select{width:100%}.gbar>div,.gbar .btn{flex:1}}
+.tp{position:fixed;left:0;right:0;top:0;z-index:70;height:3px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s}
+.tp.on{opacity:1}
+.tp i{position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,#d4b34a,#ffdf7e,#d4b34a);animation:tpm 1.1s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes tpm{0%{transform:translateX(-100%) scaleX(.6)}60%{transform:translateX(120%) scaleX(1)}100%{transform:translateX(260%) scaleX(.6)}}
+.btn.busy{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:var(--s2);cursor:progress;opacity:1!important}
+.btn.busy::before{content:"";flex:none;width:14px;height:14px;border:2px solid currentColor;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+.st.load,.st.q{display:flex;align-items:center;gap:var(--s2)}
+.st.load::before,.st.q::before{content:"";flex:none;width:14px;height:14px;border:2px solid #9a6400;border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+.st.load::before{border-color:var(--mut);border-top-color:transparent}
+.gbar{overflow:hidden}
+.gprog{position:absolute;left:0;top:0;height:3px;width:0;background:#d4b34a;transition:width .4s cubic-bezier(.2,.7,.2,1)}
+#glist.saving .gr.dirty{background:linear-gradient(90deg,#fffbea 30%,#fff3c4 50%,#fffbea 70%) 0 0/300% 100%;animation:sv 1.2s linear infinite}
+@keyframes sv{to{background-position:-150% 0}}
 .btn.danger{background:#b42318;border-color:#b42318;margin-top:var(--s3)}
 </style>
 </head>
 <body>
+<div class="tp" id="tp" aria-hidden="true"><i></i></div>
 <header class="band"><div class="wrap hd"><img src="/img/seal.webp" width="40" height="50" alt=""><div><h1>Admin Quick Count Pilkades Wonogiri</h1><a class="lnk" href="/">Lihat dashboard</a></div><div class="hr" id="hr" hidden><span class="sync" id="sync" role="status" aria-live="polite"><i></i><span id="synct">Semua tersimpan</span></span><button class="btn out" id="out" type="button">Keluar</button></div></div></header>
 <div class="fail" id="fail" role="alert" hidden><div class="wrap"><span id="failt"></span><button class="btn" id="retry" type="button">Coba simpan lagi</button></div></div>
 <main><div class="wrap">
@@ -153,7 +167,7 @@ kbd{font:600 12px/1 "Jakarta",system-ui;padding:2px 6px;border:1px solid var(--l
 <p class="ghelp">Ketik angka lalu tekan <kbd>Enter</kbd> untuk turun ke desa berikutnya (<kbd>Shift</kbd>+<kbd>Enter</kbd> naik). Desa yang diubah ditandai kuning. Semua disimpan sekaligus dengan tombol di bawah atau <kbd>Ctrl</kbd>+<kbd>S</kbd>.</p>
 <div id="glist"></div>
 <p class="st" id="gmsg" role="status" aria-live="polite"></p>
-<div class="gbar" id="gbar" hidden><span id="gcount"></span><div><button class="btn alt" id="gundo" type="button">Batalkan perubahan</button><button class="btn" id="gsave" type="button">Simpan semua perubahan</button></div></div>
+<div class="gbar" id="gbar" hidden><i class="gprog" id="gprog"></i><span id="gcount"></span><div><button class="btn alt" id="gundo" type="button">Batalkan perubahan</button><button class="btn" id="gsave" type="button">Simpan semua perubahan</button></div></div>
 </section>
 <dialog id="gdlg" aria-labelledby="gdh"><form method="dialog"><h2 id="gdh">Periksa angka ini dulu</h2>
 <p>Angka berikut berubah jauh dari sebelumnya. Pastikan bukan salah ketik (misalnya kelebihan nol).</p><ul id="gwl"></ul>
@@ -185,7 +199,11 @@ const ls={get(){try{return JSON.parse(localStorage.getItem(SK)||sessionStorage.g
  clear(){try{localStorage.removeItem(SK);sessionStorage.removeItem(SK)}catch(e){}}};
 const MAXB=40*1024,W=240;
 const RAT={'4x6':[4,6],'3x4':[3,4],'1x1':[1,1]},AR={'4x6':'2/3','3x4':'3/4','1x1':'1/1'},RL={'4x6':'4 x 6 (potret)','3x4':'3 x 4','1x1':'1 x 1 (persegi)'};
-const call=(fn,data)=>fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,key:SES?'':KEY,session:SES||undefined,data})}).then(r=>r.json());
+let TPN=0;const tp=on=>{TPN=Math.max(0,TPN+(on?1:-1));$('tp').classList.toggle('on',TPN>0)};
+const call=(fn,data)=>{tp(true);return fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,key:SES?'':KEY,session:SES||undefined,data})}).then(r=>r.json()).finally(()=>tp(false))};
+/* tombol sibuk: spinner + teks proses, tidak bisa diklik dua kali */
+function busy(b,on,label){if(!b)return;if(on){b.dataset.t=b.dataset.t||b.textContent;b.classList.add('busy');b.disabled=true;b.setAttribute('aria-busy','true');if(label)b.textContent=label}
+ else{b.classList.remove('busy');b.disabled=false;b.removeAttribute('aria-busy');if(b.dataset.t){b.textContent=b.dataset.t;delete b.dataset.t}}}
 const expired=r=>r&&(r.error==='session'||r.error==='unauthorized');
 const toBlob=(c,q)=>new Promise(r=>c.toBlob(r,'image/jpeg',q));
 const toB64=bl=>new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(',')[1]);r.onerror=no;r.readAsDataURL(bl)});
@@ -248,34 +266,34 @@ async function makeEditor(file,rasio){
 const STAT=['Belum masuk','Sementara','Final'];
 const TFA=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
 function tsA(ms){const p={};TFA.formatToParts(new Date(ms)).forEach(x=>p[x.type]=x.value);return p.day+' '+p.month+' '+p.year+', '+p.hour+':'+p.minute+':'+p.second}
-let S={calon:[],desa:[]},TAB='v',FLASH='';
+let S={calon:[],desa:[]},TAB='v',FLASH='',FLASHK='';
 const nf=n=>n==null||n===''?'':Number(n).toLocaleString('id-ID');
 const act=(k,d)=>S.calon.filter(c=>c.kecamatan===k&&c.desa===d&&c.aktif).sort((a,b)=>(+a.nomor_urut||99)-(+b.nomor_urut||99));
 const inf=(k,d)=>S.desa.find(x=>x.kecamatan===k&&x.desa===d)||{status:STAT[0],updated:0};
 const opt=(t,v)=>{const o=el('option',null,t);o.value=v;return o};
-async function run(fn,data,m){m.className='st';m.textContent='Menyimpan...';
+async function run(fn,data,m){m.className='st load';m.textContent='Menyimpan...';
  try{const r=await call(fn,data);
   if(r.error){if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return null}m.textContent=r.error;return null}
   S={calon:r.calon,desa:r.desa};return r}
  catch(e){m.textContent='Gagal terhubung. Coba lagi.';return null}}
 function enter(r){S={calon:r.calon,desa:r.desa};$('login').hidden=true;$('work').hidden=false;$('hr').hidden=false;$('key').value='';KEY='';fillK()}
 $('go').onclick=async()=>{KEY=$('key').value;SES='';if(!KEY){$('msg').textContent='Isi kunci admin.';return}
- $('go').disabled=true;$('msg').className='st';$('msg').textContent='Memuat...';
+ busy($('go'),true,'Memeriksa kunci...');$('msg').className='st';$('msg').textContent='';
  try{const r=await call('login');
   if(r.error){$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah, atau terkunci 10 menit setelah 10 kali salah.':r.error;return}
   if(r.session){SES=r.session;ls.set({session:r.session,exp:r.exp},$('rem').checked)}
-  enter(r)}catch(e){$('msg').textContent='Gagal terhubung. Periksa internet, lalu coba lagi.'}
- finally{$('go').disabled=false}};
+  $('go').textContent='Memuat data desa...';enter(r)}catch(e){$('msg').textContent='Gagal terhubung. Periksa internet, lalu coba lagi.'}
+ finally{busy($('go'),false)}};
 function logout(msg){const s=SES;SES='';KEY='';ls.clear();
  if(s)fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn:'logout',session:s})}).catch(()=>{});
  $('work').hidden=true;$('hr').hidden=true;$('login').hidden=false;$('msg').className='st';$('msg').textContent=msg||'';$('key').focus()}
 $('out').onclick=()=>{if(PEND.size&&!confirm('Masih ada data yang sedang disimpan. Tetap keluar?'))return;logout('Anda sudah keluar.')};
 (async()=>{const v=ls.get();if(!v||!v.session||v.exp<Date.now()){ls.clear();return}
- SES=v.session;$('msg').className='st';$('msg').textContent='Membuka panel admin...';$('go').disabled=true;
+ SES=v.session;$('msg').className='st load';$('msg').textContent='Membuka panel admin...';busy($('go'),true,'Membuka panel...');
  try{const r=await call('list');if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return}
-  if(r.error){$('msg').textContent=r.error;return}enter(r);$('msg').textContent=''}
- catch(e){$('msg').textContent='Gagal terhubung. Muat ulang halaman untuk mencoba lagi.'}
- finally{$('go').disabled=false}})();
+  if(r.error){$('msg').className='st';$('msg').textContent=r.error;return}enter(r);$('msg').textContent=''}
+ catch(e){$('msg').className='st';$('msg').textContent='Gagal terhubung. Muat ulang halaman untuk mencoba lagi.'}
+ finally{busy($('go'),false)}})();
 $('key').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
 function fillK(k,d){const ks=[...new Set(S.calon.map(c=>c.kecamatan))];
  $('fk').replaceChildren(...ks.map(x=>opt(x,x)));if(k&&ks.includes(k))$('fk').value=k;
@@ -292,7 +310,7 @@ function show(){const c={};S.desa.forEach(x=>c[x.status]=(c[x.status]||0)+1);
 function vote(){
  const k=$('fk').value,d=$('fd').value,cs=act(k,d),i=inf(k,d),box=$('vform');
  if(!cs.length){box.replaceChildren(el('p','st','Desa ini belum punya calon aktif. Tambahkan atau aktifkan di tab Calon dan foto.'));return}
- const ins=[],pcs=[],tot=el('b','','0'),m=el('p','st',FLASH);m.dataset.msg='1';if(FLASH)m.className='st q';FLASH='';
+ const ins=[],pcs=[],tot=el('b','','0'),m=el('p','st',FLASH);m.dataset.msg='1';if(FLASH){m.className='st q';m.dataset.for=FLASHK}FLASH='';FLASHK='';
  if(!FLASH&&FAIL[k+'|'+d]){m.className='st';m.textContent='Belum tersimpan: '+FAIL[k+'|'+d].error}
  const rowsEl=cs.map((c,n)=>{const r=el('div','vr'),lb=el('label','vl'),x=el('input'),p=el('span','pc');
   x.type='number';x.min='0';x.step='1';x.inputMode='numeric';x.value=c.suara==null?'':c.suara;x.dataset.id=c.id;
@@ -308,7 +326,7 @@ function vote(){
   b1.disabled=b2.disabled=false;
   for(const c of cs){const v=suara[c.id];if(v!==''&&!/^\d{1,6}$/.test(v)){m.className='st';m.textContent='Suara '+proper(c.nama)+' harus angka bulat, 0 atau lebih.';return}}
   if(st.value===STAT[2]&&cs.some(c=>suara[c.id]==='')){m.className='st';m.textContent='Status Final butuh suara semua calon terisi.';return}
-  enqueue({kecamatan:k,desa:d,status:st.value,suara});
+  enqueue({kecamatan:k,desa:d,status:st.value,suara});FLASHK=k+'|'+d;
   FLASH='Sedang disimpan di latar belakang. Anda bisa lanjut mengisi.';
   if(next){const idx=S.desa.findIndex(x=>x.kecamatan===k&&x.desa===d),nx=S.desa.slice(idx+1).concat(S.desa.slice(0,idx)).find(x=>x.status===STAT[0]);
    if(nx){FLASH='Desa '+d+' disimpan di latar belakang. Silakan isi desa ini.';fillK(nx.kecamatan,nx.desa);return}FLASH='Sedang disimpan di latar belakang. Semua desa sudah terisi.'}
@@ -346,7 +364,10 @@ function syncUI(done){const n=PEND.size,f=Object.keys(FAIL),el2=$('sync');
  if(f.length)$('failt').textContent='Belum tersimpan: '+f.map(k=>k.split('|')[1]+' ('+FAIL[k].error+')').join(', ');
  relabel();
  const k=$('fk').value,d=$('fd').value,m=document.querySelector('#vform [data-msg]');   // pesan di form desa yang sedang dibuka, tanpa menggambar ulang form
- if(m&&m.textContent.startsWith('Sedang')&&!PEND.has(k+'|'+d)){if(FAIL[k+'|'+d]){m.className='st';m.textContent='Gagal disimpan: '+FAIL[k+'|'+d].error}else{m.className='st ok';m.textContent='Tersimpan.'}}}
+ const fk2=m&&m.dataset.for;
+ if(fk2&&m.classList.contains('q')&&!PEND.has(fk2)){const nm2=fk2.split('|')[1],same=fk2===k+'|'+d;
+  if(FAIL[fk2]){m.className='st';m.textContent=(same?'':'Desa '+nm2+' ')+'gagal disimpan: '+FAIL[fk2].error}
+  else{m.className='st ok';m.textContent=same?'Tersimpan.':'Desa '+nm2+' tersimpan. Silakan isi desa ini.'}}}
 $('retry').onclick=()=>{Object.values(FAIL).map(x=>x.job).forEach(enqueue)};
 ['dragover','drop'].forEach(t=>addEventListener(t,e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()}));
 addEventListener('beforeunload',e=>{if(PEND.size||dirtyList().length){e.preventDefault();e.returnValue=''}});
@@ -366,7 +387,7 @@ const dirtyList=()=>S.desa.filter(gdirty);
 function gbar(){const n=dirtyList(),ks=new Set(n.map(x=>x.kecamatan));
  $('gbar').hidden=!n.length&&!GBUSY;
  $('gcount').textContent=GBUSY?$('gcount').textContent:n.length+' desa berubah'+(ks.size>1?' di '+ks.size+' kecamatan':'');
- $('gsave').disabled=$('gundo').disabled=GBUSY;$('gsave').textContent=GBUSY?'Menyimpan...':'Simpan semua perubahan ('+n.length+')'}
+ $('gundo').disabled=GBUSY;if(GBUSY)busy($('gsave'),true,'Menyimpan...');else{busy($('gsave'),false);$('gsave').textContent='Simpan semua perubahan ('+n.length+')'}}
 function gsum(ds){const c={};ds.forEach(x=>c[x.status]=(c[x.status]||0)+1);
  return 'Kec. '+$('fk').value+': '+ds.length+' desa · Final '+(c.Final||0)+' · Sementara '+(c.Sementara||0)+' · Belum masuk '+(c['Belum masuk']||0)}
 function gridv(){const k=$('fk').value,all=S.desa.filter(x=>x.kecamatan===k);
@@ -424,6 +445,7 @@ async function gsave(){const list=dirtyList();if(!list.length)return;
  const items=list.map(x=>{const s={};act(x.kecamatan,x.desa).forEach(c=>s[c.id]=String(gval(x,c)).trim());return{kecamatan:x.kecamatan,desa:x.desa,status:gstat(x),suara:s}});
  for(let i=0;i<items.length;i+=25){const part=items.slice(i,i+25);
   $('gcount').textContent='Menyimpan '+Math.min(i+part.length,items.length)+' dari '+items.length+' desa...';gbar();
+  $('gprog').style.width=(i/items.length*100+4)+'%';$('glist').classList.add('saving');
   let r=null;try{r=await call('saveVotesBatch',{items:part})}catch(e){r={error:'Gagal terhubung. Periksa internet, lalu simpan lagi.'}}
   if(expired(r)){GBUSY=false;saveDR();logout('Sesi berakhir. Masuk lagi; perubahan Anda masih tersimpan di tab ini.');return}
   if(r.error){part.forEach(p=>GERR[p.kecamatan+'|'+p.desa]=r.error);fail+=part.length;continue}
@@ -432,6 +454,7 @@ async function gsave(){const list=dirtyList();if(!list.length)return;
     S.calon.forEach(c=>{if(c.kecamatan===x.kecamatan&&c.desa===x.desa&&x.suara.hasOwnProperty(c.id))c.suara=x.suara[c.id]});
     delete DR[key];delete GERR[key];done++}
    else{GERR[key]=x.error;fail++}})}
+ $('gprog').style.width='100%';setTimeout(()=>$('gprog').style.width='0',400);$('glist').classList.remove('saving');
  GBUSY=false;saveDR();gridv();
  $('gmsg').className=fail?'st':'st ok';
  $('gmsg').textContent=(done?done+' desa tersimpan. ':'')+(fail?fail+' desa gagal, lihat tanda merah lalu simpan lagi.':'Dashboard ikut berubah dalam beberapa detik.');
@@ -477,18 +500,18 @@ function card(it){
  c.tabIndex=-1;c.addEventListener('paste',e=>{const it2=[...(e.clipboardData||{}).items||[]].find(x=>x.kind==='file'&&/^image\//.test(x.type));if(it2){e.preventDefault();load(it2.getAsFile())}});
  c.addEventListener('pointerdown',e=>{if(!e.target.closest('input,select,button,canvas,label'))c.focus({preventScroll:true})});
  rs.onchange=()=>{ph.style.setProperty('--ar',AR[rs.value]);if(ed)ed.setRatio(rs.value)};
- btn.onclick=async()=>{btn.disabled=true;
+ btn.onclick=async()=>{busy(btn,true,ed?'Mengompres foto...':'Menyimpan...');
   const data={id:it.id,nama:proper(nm.value),petahana:pe.checked,aktif:ae.checked,nomor_urut:num.value.trim(),rasio:rs.value};let kb='';
   try{if(ed){const o=await ed.out();data.foto_b64=o.b64;kb=' Foto dikompres menjadi '+Math.max(1,Math.round(o.blob.size/1024))+' KB.';show(URL.createObjectURL(o.blob))}
-   const r=await run('saveCalon',data,st);
+   btn.textContent='Menyimpan...';const r=await run('saveCalon',data,st);
    if(r){st.textContent='Tersimpan.'+kb;st.className='st ok';if(ed){ed.el.remove();ed=null;file.value=''}}
   }catch(e){st.textContent=e.message==='size'?'Foto tidak bisa dikecilkan sampai 40 KB. Coba foto lain.':'Gagal memproses foto. Gunakan JPG atau PNG.'}
-  btn.disabled=false};
+  busy(btn,false)};
  f.append(ml,nl,rl,fl,pl,al,btn);b.append(f,st);c.append(ph,b);return c}
 $('addb').onclick=async()=>{const k=$('ak').value.trim().toUpperCase(),d=$('ad').value.trim().toUpperCase(),m=$('addm');
- const r=await run('addCalon',{kecamatan:k,desa:d,nama:proper($('an').value),petahana:$('ap').checked},m);
+ busy($('addb'),true,'Menambahkan...');const r=await run('addCalon',{kecamatan:k,desa:d,nama:proper($('an').value),petahana:$('ap').checked},m);busy($('addb'),false);
  if(r){$('an').value='';$('ap').checked=false;fillK(k,d);m.textContent='Calon ditambahkan ke desa '+d+'.';m.className='st ok'}};
-$('rb').onclick=async()=>{const m=$('rm'),r=await run('reset',{confirm:$('rc').value.trim()},m);
+$('rb').onclick=async()=>{const m=$('rm');busy($('rb'),true,'Mengosongkan...');const r=await run('reset',{confirm:$('rc').value.trim()},m);busy($('rb'),false);
  if(r){$('rc').value='';m.textContent='Semua suara dikosongkan.';m.className='st ok';fillK($('fk').value,$('fd').value)}};
 </script>
 </body>
