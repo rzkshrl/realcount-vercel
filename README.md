@@ -37,3 +37,11 @@ Cara kerja:
 - Untuk menghemat kuota Vercel Hobby (1 juta edge request per bulan), naikkan `POLL_ACTIVE` di `public/index.html` (mis. 15000) bila pengunjung sangat banyak.
 - Admin: login sekali, sesi 14 hari disimpan di browser (bisa dimatikan dengan menghapus centang "Tetap masuk"). Tombol Keluar mengakhiri sesi. Menu Quick Count > "Keluarkan semua sesi admin" untuk mencabut semua perangkat.
 - Simpan suara berjalan di latar belakang: admin bisa langsung lanjut ke desa berikutnya; status penyimpanan tampil di kanan atas, desa yang gagal bisa dicoba lagi.
+
+## Input per kecamatan (admin)
+- Tab "Input per kecamatan": semua desa satu kecamatan tampil sekaligus. Enter turun ke desa berikutnya, Shift+Enter naik, Ctrl+S menyimpan.
+- Desa yang diubah ditandai kuning, yang salah ditandai merah (bukan angka, atau Final tapi ada suara kosong).
+- Sebelum menyimpan, angka yang berubah jauh (3x lipat atau sepertiga, selisih >= 50) ditampilkan untuk diperiksa.
+- Semua perubahan dikirim sekaligus (maks 25 desa per permintaan) lewat `saveVotesBatch` di Code.gs; desa yang gagal tetap ditandai dan bisa disimpan ulang.
+- Perubahan yang belum disimpan bertahan selama tab terbuka (juga kalau halaman dimuat ulang).
+- Foto calon: seret file ke kartu calon, atau tempel (Ctrl+V). Editor punya grid sepertiga, putar 90°, miring ±45°, perbesar (slider/roda/cubit), geser (mouse/jari/panah).

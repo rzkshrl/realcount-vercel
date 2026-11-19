@@ -12,7 +12,7 @@
 html,body{margin:0}
 @font-face{font-family:"Jakarta";src:url(/fonts/jakarta.woff2) format("woff2");font-weight:200 800;font-display:swap}
 body{background:var(--bg);color:var(--ink);font:16px/1.6 "Jakarta",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-.wrap{max-width:900px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
 .band{background:var(--acc);color:#fff;padding:var(--s5) 0;border-bottom:4px solid #d4b34a}.band>.wrap{display:flex;align-items:center;justify-content:space-between;gap:var(--s4);flex-wrap:wrap}.hd{display:flex;align-items:center;gap:var(--s4)}.hd img{flex:none;height:auto}
 h1{margin:0;font-size:clamp(22px,3vw,28px);line-height:1.2;letter-spacing:-.02em;font-weight:600}
 main{padding:var(--s5) 0 var(--s7)}
@@ -84,6 +84,43 @@ h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
 .q{color:#9a6400;font-weight:600}
 @keyframes spin{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+.row2.one{grid-template-columns:1fr}
+.gtools{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:var(--s3) var(--s4);margin-bottom:var(--s2)}
+.gtools #gsum{flex:1 1 100%;margin:0;font-weight:600;color:var(--ink)}
+.gsearch{flex:1 1 240px}.gsearch input{min-height:44px;border:1px solid var(--line);border-radius:var(--r-sm);font:inherit;padding:0 var(--s4);width:100%}
+.ghelp{margin:0 0 var(--s4);font-size:14px;color:var(--mut)}
+kbd{font:600 12px/1 "Jakarta",system-ui;padding:2px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;background:#fff;color:var(--ink)}
+#glist{display:grid;gap:var(--s2)}
+.gr{display:grid;grid-template-columns:minmax(150px,200px) 1fr auto;gap:var(--s3) var(--s4);align-items:center;padding:var(--s3) var(--s4);background:var(--card);border:1px solid var(--line);border-left:4px solid transparent;border-radius:var(--r-sm);transition:background .2s,border-color .2s}
+.gr.dirty{background:#fffbea;border-left-color:#d4b34a}
+.gr.invalid{background:#fdecea;border-left-color:#b42318}
+.gr:focus-within{box-shadow:0 0 0 2px rgba(181,18,27,.25)}
+.gn{font-weight:700;line-height:1.3}
+.gm{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:4px;font-size:12px;color:var(--mut)}
+.gs{padding:1px 8px;border-radius:99px;font-weight:700;background:#ecebe7}.gs.Final{background:#e2f2e9;color:#16794a}.gs.Sementara{background:#fdf0d8;color:#8a5206}
+.gp{color:#9a6400;font-weight:600}
+.gc{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s3)}
+.gi{display:grid;gap:2px;width:124px;font-size:12px;color:var(--ink)}
+.gl{display:flex;align-items:center;gap:6px;min-width:0}
+.gl .vn{min-width:20px;height:20px;font-size:11px;flex:none}
+.gcn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.gi input{min-height:44px;width:100%;border:1px solid rgba(29,27,23,.24);border-radius:var(--r-sm);font:inherit;font-size:18px;font-variant-numeric:tabular-nums;padding:0 var(--s3);background:#fff}
+.gi input:focus{outline:3px solid #e8a33d;outline-offset:0;border-color:transparent}
+.gi input.bad{border-color:#b42318;background:#fff5f4}
+.gside{display:flex;align-items:flex-end;gap:var(--s3)}
+.gst{display:grid;gap:2px;font-size:12px;color:var(--mut)}
+.gst select{min-height:44px;width:152px;font-size:14px}
+.gtot{display:grid;gap:2px;text-align:right;font-size:12px;color:var(--mut);min-width:64px}
+.gt{font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;line-height:44px}
+.ge{grid-column:1/-1;margin:0;font-size:13px;font-weight:600;color:#b42318}.ge:empty{display:none}
+.gbar{position:sticky;bottom:0;z-index:5;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--s3);margin:var(--s4) calc(-1*var(--s3)) 0;padding:var(--s3) var(--s4) calc(var(--s3) + env(safe-area-inset-bottom));background:#2a2935;color:#fff;border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -6px 20px rgba(0,0,0,.15);font-weight:600}
+.gbar>div{display:flex;gap:var(--s2);flex-wrap:wrap}
+.gbar .btn{background:#d4b34a;border-color:#d4b34a;color:#2a2935;font-weight:700}
+.gbar .btn.alt{background:transparent;border-color:rgba(255,255,255,.5);color:#fff}
+#gdlg{border:0;border-radius:var(--r-lg);padding:var(--s5);max-width:min(92vw,480px)}
+#gdlg::backdrop{background:rgba(29,27,23,.6)}
+#gdlg ul{padding-left:1.2em;font-variant-numeric:tabular-nums;font-weight:600}
+@media (max-width:760px){.ghelp{display:none}.gr{grid-template-columns:1fr}.gc{display:grid;grid-template-columns:1fr 1fr}.gi{width:auto}.gside{justify-content:space-between}.gst{flex:1}.gst select{width:100%}.gbar>div,.gbar .btn{flex:1}}
 .btn.danger{background:#b42318;border-color:#b42318;margin-top:var(--s3)}
 </style>
 </head>
@@ -99,15 +136,28 @@ h2{margin:0 0 var(--s3);font-size:20px;line-height:1.3;font-weight:600}
 </div>
 <div id="work" hidden>
 <div class="tabs" role="tablist" aria-label="Menu admin">
-<button role="tab" data-t="v" aria-selected="true" type="button">Input suara</button>
+<button role="tab" data-t="v" aria-selected="true" type="button">Input per desa</button>
+<button role="tab" data-t="g" aria-selected="false" type="button">Input per kecamatan</button>
 <button role="tab" data-t="c" aria-selected="false" type="button">Calon dan foto</button>
 <button role="tab" data-t="p" aria-selected="false" type="button">Pengaturan</button>
 </div>
 <div class="card row2" id="sel">
 <label>Kecamatan<select id="fk"></select></label>
-<label>Desa<select id="fd"></select></label>
+<label id="fdl">Desa<select id="fd"></select></label>
 </div>
 <section id="tv" role="tabpanel"><p class="st" id="sum"></p><div class="card" id="vform"></div></section>
+<section id="tg" role="tabpanel" hidden>
+<div class="gtools"><p class="st" id="gsum"></p>
+<label class="gsearch">Cari desa<input id="gq" type="search" autocomplete="off"></label>
+<label class="ck"><input type="checkbox" id="gonly"> Hanya desa yang belum masuk</label></div>
+<p class="ghelp">Ketik angka lalu tekan <kbd>Enter</kbd> untuk turun ke desa berikutnya (<kbd>Shift</kbd>+<kbd>Enter</kbd> naik). Desa yang diubah ditandai kuning. Semua disimpan sekaligus dengan tombol di bawah atau <kbd>Ctrl</kbd>+<kbd>S</kbd>.</p>
+<div id="glist"></div>
+<p class="st" id="gmsg" role="status" aria-live="polite"></p>
+<div class="gbar" id="gbar" hidden><span id="gcount"></span><div><button class="btn alt" id="gundo" type="button">Batalkan perubahan</button><button class="btn" id="gsave" type="button">Simpan semua perubahan</button></div></div>
+</section>
+<dialog id="gdlg" aria-labelledby="gdh"><form method="dialog"><h2 id="gdh">Periksa angka ini dulu</h2>
+<p>Angka berikut berubah jauh dari sebelumnya. Pastikan bukan salah ketik (misalnya kelebihan nol).</p><ul id="gwl"></ul>
+<div class="btns"><button class="btn alt" value="cancel">Periksa lagi</button><button class="btn" value="ok">Tetap simpan</button></div></form></dialog>
 <section id="tc" role="tabpanel" hidden>
 <div class="card"><h2>Tambah calon</h2>
 <div class="f"><label>Kecamatan<input id="ak" list="kl" type="text"></label><label>Desa<input id="ad" list="dl" type="text"></label>
@@ -235,10 +285,10 @@ function fillD(d){const k=$('fk').value,ds=S.desa.filter(x=>x.kecamatan===k);
 $('fk').onchange=()=>fillD();$('fd').onchange=show;
 document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;
  document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x===b)));
- ['v','c','p'].forEach(t=>$('t'+t).hidden=t!==TAB);$('sel').hidden=TAB==='p';show()});
+ ['v','g','c','p'].forEach(t=>$('t'+t).hidden=t!==TAB);$('sel').hidden=TAB==='p';$('fdl').hidden=TAB==='g';$('sel').classList.toggle('one',TAB==='g');show()});
 function show(){const c={};S.desa.forEach(x=>c[x.status]=(c[x.status]||0)+1);
  $('sum').textContent='Final '+(c.Final||0)+' · Sementara '+(c.Sementara||0)+' · Belum masuk '+(c['Belum masuk']||0)+' dari '+S.desa.length+' desa';
- if(TAB==='v')vote();if(TAB==='c')cards()}
+ if(TAB==='v')vote();if(TAB==='g')gridv();if(TAB==='c')cards()}
 function vote(){
  const k=$('fk').value,d=$('fd').value,cs=act(k,d),i=inf(k,d),box=$('vform');
  if(!cs.length){box.replaceChildren(el('p','st','Desa ini belum punya calon aktif. Tambahkan atau aktifkan di tab Calon dan foto.'));return}
@@ -299,7 +349,102 @@ function syncUI(done){const n=PEND.size,f=Object.keys(FAIL),el2=$('sync');
  if(m&&m.textContent.startsWith('Sedang')&&!PEND.has(k+'|'+d)){if(FAIL[k+'|'+d]){m.className='st';m.textContent='Gagal disimpan: '+FAIL[k+'|'+d].error}else{m.className='st ok';m.textContent='Tersimpan.'}}}
 $('retry').onclick=()=>{Object.values(FAIL).map(x=>x.job).forEach(enqueue)};
 ['dragover','drop'].forEach(t=>addEventListener(t,e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()}));
-addEventListener('beforeunload',e=>{if(PEND.size){e.preventDefault();e.returnValue=''}});
+addEventListener('beforeunload',e=>{if(PEND.size||dirtyList().length){e.preventDefault();e.returnValue=''}});
+/* ---------- Input per kecamatan: semua desa satu kecamatan dalam satu layar, disimpan sekaligus ---------- */
+const DK='qc-draft';
+let DR=(()=>{try{return JSON.parse(sessionStorage.getItem(DK)||'{}')}catch(e){return{}}})(),GERR={},GBUSY=false,GONLY=false,GQ='';
+const saveDR=()=>{try{sessionStorage.setItem(DK,JSON.stringify(DR))}catch(e){}};
+const gkey=x=>x.kecamatan+'|'+x.desa;
+function gval(x,c){const d=DR[gkey(x)];return d&&d.suara.hasOwnProperty(c.id)?d.suara[c.id]:(c.suara==null?'':String(c.suara))}
+function gstat(x){const d=DR[gkey(x)];return d&&d.status?d.status:x.status}
+function gdirty(x){const d=DR[gkey(x)];if(!d)return false;const cs=act(x.kecamatan,x.desa);
+ return cs.some(c=>d.suara.hasOwnProperty(c.id)&&d.suara[c.id]!==(c.suara==null?'':String(c.suara)))||(d.status&&d.status!==x.status)}
+function gcheck(x){const cs=act(x.kecamatan,x.desa),bad=[];let empty=false;
+ cs.forEach(c=>{const v=String(gval(x,c)).trim();if(v==='')empty=true;else if(!/^\d{1,6}$/.test(v))bad.push(c.id)});
+ return{bad,final:gstat(x)===STAT[2]&&empty}}
+const dirtyList=()=>S.desa.filter(gdirty);
+function gbar(){const n=dirtyList(),ks=new Set(n.map(x=>x.kecamatan));
+ $('gbar').hidden=!n.length&&!GBUSY;
+ $('gcount').textContent=GBUSY?$('gcount').textContent:n.length+' desa berubah'+(ks.size>1?' di '+ks.size+' kecamatan':'');
+ $('gsave').disabled=$('gundo').disabled=GBUSY;$('gsave').textContent=GBUSY?'Menyimpan...':'Simpan semua perubahan ('+n.length+')'}
+function gsum(ds){const c={};ds.forEach(x=>c[x.status]=(c[x.status]||0)+1);
+ return 'Kec. '+$('fk').value+': '+ds.length+' desa · Final '+(c.Final||0)+' · Sementara '+(c.Sementara||0)+' · Belum masuk '+(c['Belum masuk']||0)}
+function gridv(){const k=$('fk').value,all=S.desa.filter(x=>x.kecamatan===k);
+ const ds=all.filter(x=>(!GONLY||x.status===STAT[0]||gdirty(x))&&(!GQ||x.desa.toLowerCase().includes(GQ)));
+ $('gsum').textContent=gsum(all);
+ const box=$('glist');let r=0;
+ if(!ds.length){box.replaceChildren(el('p','st',GONLY?'Semua desa di kecamatan ini sudah ada suaranya.':'Tidak ada desa yang cocok.'));gbar();return}
+ box.replaceChildren(...ds.map(x=>grow(x,r++)));gbar()}
+function grow(x,ri){
+ const key=gkey(x),cs=act(x.kecamatan,x.desa),row=el('div','gr'),hd=el('div','gh'),cells=el('div','gc'),tot=el('b','gt');
+ row.dataset.k=key;
+ const nm=el('div','gn',x.desa),chip=el('span','gs '+x.status.replace(' ','-'),x.status),meta=el('div','gm');
+ meta.append(chip);if(PEND.has(key))meta.append(el('span','gp','menyimpan…'));
+ if(x.updated)meta.append(el('span','gu',tsA(x.updated).replace(/^\d+ \w+ \d+, /,'')));
+ hd.append(nm,meta);
+ const ins=[],stl=el('label','gst'),st=el('select');stl.append(el('span',null,'Status'),st);
+ STAT.forEach(s=>st.append(opt(s,s)));st.value=gstat(x);
+ const err=el('p','ge');
+ const refresh=()=>{const chk=gcheck(x),dirty=gdirty(x);row.classList.toggle('dirty',dirty);
+  ins.forEach(i=>i.classList.toggle('bad',chk.bad.includes(i.dataset.id)));
+  const t=ins.reduce((a,i)=>a+(/^\d+$/.test(i.value.trim())?+i.value:0),0);tot.textContent=nf(t)||'0';
+  err.textContent=GERR[key]?'Gagal disimpan: '+GERR[key]:chk.bad.length?'Isi dengan angka bulat 0 atau lebih.':chk.final?'Status Final butuh suara semua calon terisi.':'';
+  row.classList.toggle('invalid',!!(chk.bad.length||chk.final));gbar()};
+ const touch=()=>{DR[key]=DR[key]||{suara:{}};return DR[key]};
+ if(!cs.length)cells.append(el('p','st','Belum ada calon aktif.'));
+ cs.forEach((c,ci)=>{const l=el('label','gi'),cap=el('span','gl'),i=el('input');
+  cap.append(el('span','vn',c.nomor_urut||'-'),el('span','gcn',proper(c.nama)));cap.title=proper(c.nama);
+  i.type='text';i.inputMode='numeric';i.enterKeyHint='next';i.autocomplete='off';i.pattern='[0-9]*';i.value=gval(x,c);i.dataset.id=c.id;i.dataset.r=ri;i.dataset.c=ci;
+  i.setAttribute('aria-label','Suara '+proper(c.nama)+', desa '+x.desa);
+  i.oninput=()=>{const d=touch();d.suara[c.id]=i.value.trim();
+   if(st.value===STAT[0]&&i.value.trim()!==''){st.value=STAT[1];d.status=STAT[1]}
+   delete GERR[key];saveDR();refresh()};
+  i.onfocus=()=>i.select();
+  i.onkeydown=e=>{if(e.key!=='Enter')return;e.preventDefault();gmove(i,e.shiftKey?-1:1)};
+  ins.push(i);l.append(cap,i);cells.append(l)});
+ st.onchange=()=>{touch().status=st.value;delete GERR[key];saveDR();refresh()};
+ const tl=el('div','gtot');tl.append(el('span',null,'Total'),tot);
+ const side=el('div','gside');side.append(stl,tl);
+ row.append(hd,cells,side,err);refresh();return row}
+function gmove(i,dir){const all=[...$('glist').querySelectorAll('input')],r=+i.dataset.r,c=+i.dataset.c;
+ const tgt=all.find(x=>+x.dataset.r===r+dir&&+x.dataset.c===c)||all.find(x=>+x.dataset.r===r+dir)||(dir>0?$('gsave'):null);
+ if(tgt){tgt.focus();tgt.scrollIntoView({block:'nearest'})}}
+function gwarn(list){const w=[];
+ list.forEach(x=>act(x.kecamatan,x.desa).forEach(c=>{const nv=String(gval(x,c)).trim(),ov=c.suara;
+  if(nv===''||ov==null)return;const n=+nv;
+  if(ov>0&&Math.abs(n-ov)>=50&&(n>=ov*3||n<=ov/3))w.push(x.desa+': '+proper(c.nama)+' '+nf(ov)+' → '+nf(n))}));
+ return w}
+async function gsave(){const list=dirtyList();if(!list.length)return;
+ const badRow=list.find(x=>{const c=gcheck(x);return c.bad.length||c.final});
+ if(badRow){$('fk').value=badRow.kecamatan;gridv();const r=$('glist').querySelector('.gr.invalid');if(r){r.scrollIntoView({block:'center'});const i=r.querySelector('input.bad')||r.querySelector('select');i&&i.focus()}
+  $('gmsg').className='st';$('gmsg').textContent='Perbaiki desa yang ditandai merah dulu.';return}
+ const w=gwarn(list);
+ if(w.length&&!(await gconfirm(w)))return;
+ GBUSY=true;$('gmsg').className='st';$('gmsg').textContent='';let done=0,fail=0;
+ const items=list.map(x=>{const s={};act(x.kecamatan,x.desa).forEach(c=>s[c.id]=String(gval(x,c)).trim());return{kecamatan:x.kecamatan,desa:x.desa,status:gstat(x),suara:s}});
+ for(let i=0;i<items.length;i+=25){const part=items.slice(i,i+25);
+  $('gcount').textContent='Menyimpan '+Math.min(i+part.length,items.length)+' dari '+items.length+' desa...';gbar();
+  let r=null;try{r=await call('saveVotesBatch',{items:part})}catch(e){r={error:'Gagal terhubung. Periksa internet, lalu simpan lagi.'}}
+  if(expired(r)){GBUSY=false;saveDR();logout('Sesi berakhir. Masuk lagi; perubahan Anda masih tersimpan di tab ini.');return}
+  if(r.error){part.forEach(p=>GERR[p.kecamatan+'|'+p.desa]=r.error);fail+=part.length;continue}
+  (r.results||[]).forEach(x=>{const key=x.kecamatan+'|'+x.desa;
+   if(x.ok){const d=S.desa.find(y=>gkey(y)===key);if(d){d.status=x.status;d.updated=x.updated}
+    S.calon.forEach(c=>{if(c.kecamatan===x.kecamatan&&c.desa===x.desa&&x.suara.hasOwnProperty(c.id))c.suara=x.suara[c.id]});
+    delete DR[key];delete GERR[key];done++}
+   else{GERR[key]=x.error;fail++}})}
+ GBUSY=false;saveDR();gridv();
+ $('gmsg').className=fail?'st':'st ok';
+ $('gmsg').textContent=(done?done+' desa tersimpan. ':'')+(fail?fail+' desa gagal, lihat tanda merah lalu simpan lagi.':'Dashboard ikut berubah dalam beberapa detik.');
+ if(fail){const r=$('glist').querySelector('.gr .ge:not(:empty)');r&&r.closest('.gr').scrollIntoView({block:'center'})}}
+function gconfirm(w){return new Promise(res=>{const d=$('gdlg');$('gwl').replaceChildren(...w.slice(0,12).map(t=>el('li',null,t)));
+ if(w.length>12)$('gwl').append(el('li',null,'dan '+(w.length-12)+' lainnya'));
+ d.showModal();d.onclose=()=>res(d.returnValue==='ok')})}
+$('gsave').onclick=gsave;
+$('gundo').onclick=()=>{const n=dirtyList().length;if(n&&!confirm('Batalkan perubahan di '+n+' desa yang belum disimpan?'))return;DR={};GERR={};saveDR();gridv();$('gmsg').textContent=''};
+$('gonly').onchange=()=>{GONLY=$('gonly').checked;gridv()};
+let gqt;$('gq').oninput=()=>{clearTimeout(gqt);gqt=setTimeout(()=>{GQ=$('gq').value.trim().toLowerCase();gridv()},150)};
+addEventListener('keydown',e=>{if(TAB==='g'&&(e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();gsave()}});
+
 function cards(){const k=$('fk').value,d=$('fd').value;
  $('list').replaceChildren(...S.calon.filter(c=>c.kecamatan===k&&c.desa===d).map(card))}
 function card(it){

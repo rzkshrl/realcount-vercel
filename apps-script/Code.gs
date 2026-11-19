@@ -167,13 +167,16 @@ function getDashboardData() {
 }
 
 /** Tambal cache dashboard setelah suara disimpan (tanpa membaca sheet lagi) */
-function patchDash_(d, status, t, vals, rev) {
+function patchDash_(d, status, t, vals, rev) { patchDashMany_([{ d: d, status: status, vals: vals }], t, rev); }
+function patchDashMany_(list, t, rev) {
   const x = cacheGet_();
   if (!x) return;
-  const row = x.desa.find(r => r.kecamatan === d.kecamatan && r.desa === d.desa);
-  if (!row) { dropDash_(); return; }
-  row.status = status; row.updated = t;
-  row.calon.forEach(c => { if (Object.prototype.hasOwnProperty.call(vals, c.id)) c.suara = vals[c.id] === '' ? null : vals[c.id]; });
+  for (const p of list) {
+    const row = x.desa.find(r => r.kecamatan === p.d.kecamatan && r.desa === p.d.desa);
+    if (!row) { dropDash_(); return; }
+    row.status = p.status; row.updated = t;
+    row.calon.forEach(c => { if (Object.prototype.hasOwnProperty.call(p.vals, c.id)) c.suara = p.vals[c.id] === '' ? null : p.vals[c.id]; });
+  }
   x.last = Math.max(Number(x.last) || 0, t); x.rev = rev;
   cachePut_(x);
 }
@@ -223,14 +226,14 @@ function admin_(b) {
   if (!viaSession && !(b.key && checkKey_(b.key))) return { error: b.session && !b.key ? 'session' : 'unauthorized' };
   if (fn === 'login') return Object.assign(adminList_(), newSession_());
   if (fn === 'list') return adminList_();
-  const f = { saveVotes: saveVotes_, saveCalon: saveCalon_, addCalon: addCalon_, reset: reset_ }[fn];
+  const f = { saveVotes: saveVotes_, saveVotesBatch: saveVotesBatch_, saveCalon: saveCalon_, addCalon: addCalon_, reset: reset_ }[fn];
   if (!f) return { error: 'bad request' };
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(20000)) return { error: 'Sistem sibuk, coba lagi.' };
   try {
     const r = f(d);
     if (!r || !r.ok) return r;
-    if (fn === 'saveVotes') return r;                    // balasan ringkas: admin tidak perlu menunggu daftar lengkap
+    if (fn === 'saveVotes' || fn === 'saveVotesBatch') return r;   // balasan ringkas: admin tidak perlu menunggu daftar lengkap
     SpreadsheetApp.flush(); bumpRev_(); dropDash_();      // REV dulu, baru cache dibuang: data baru selalu membawa REV baru
     const list = adminList_();
     PropertiesService.getScriptProperties().setProperty('LAST', String(list.desa.reduce((m, x) => Math.max(m, x.updated || 0), 0)));
@@ -305,6 +308,64 @@ function saveVotes_(d) {
   bumpRev_(t, rev);
   const suara = {}; Object.keys(vals).forEach(k => suara[k] = vals[k] === '' ? null : vals[k]);
   return { ok: true, info: 'Tersimpan.', kecamatan: d.kecamatan, desa: d.desa, status: status, updated: t, suara: suara };
+}
+
+/** Simpan banyak desa sekaligus (tampilan Input per kecamatan). Semua sheet dibaca dan ditulis sekali.
+ *  d.items = [{kecamatan, desa, status, suara:{calon_id: angka|''}}], maks 40 desa per panggilan.
+ *  Desa yang tidak valid dilewati dan dilaporkan; desa lain tetap tersimpan. */
+function saveVotesBatch_(d) {
+  const items = Array.isArray(d.items) ? d.items.slice(0, 40) : [];
+  if (!items.length) return { error: 'Tidak ada perubahan untuk disimpan.' };
+  const ss = db_(), now = new Date(), t = now.getTime(), log = [], results = [], patches = [];
+  const cfgAll = rows_(ss.getSheetByName(SH.CFG)).filter(r => isYa_(r.aktif));
+  const vs = ss.getSheetByName(SH.VOTE), cur = vs.getDataRange().getValues(), pos = {}, add = [];
+  cur.forEach((r, i) => { if (i) pos[r[0]] = i; });
+  const ds = ss.getSheetByName(SH.DESA), dv = ds.getDataRange().getValues(), dpos = {}, dadd = [];
+  dv.forEach((r, i) => { if (i) dpos[r[0] + '|' + r[1]] = i; });
+  let voteDirty = false, desaDirty = false;
+  items.forEach(it => {
+    const out = { kecamatan: it.kecamatan, desa: it.desa };
+    const cs = cfgAll.filter(r => r.kecamatan === it.kecamatan && r.desa === it.desa);
+    if (!cs.length) { out.error = 'Belum punya calon aktif.'; results.push(out); return; }
+    const vals = {}; let any = false, full = true, bad = '';
+    for (const r of cs) {
+      const raw = (it.suara || {})[r.id];
+      if (raw === '' || raw == null) { vals[r.id] = ''; full = false; continue; }
+      if (!/^\d{1,6}$/.test(String(raw))) { bad = 'Suara ' + r.nama_calon + ' harus angka bulat.'; break; }
+      vals[r.id] = Number(raw); any = true;
+    }
+    if (bad) { out.error = bad; results.push(out); return; }
+    let status = STATUS.indexOf(it.status) >= 0 ? it.status : STATUS[0];
+    if (!any) status = STATUS[0]; else if (status === STATUS[0]) status = STATUS[1];
+    if (status === STATUS[2] && !full) { out.error = 'Status Final butuh suara semua calon terisi.'; results.push(out); return; }
+    cs.forEach(r => {
+      const nv = vals[r.id], has = pos[r.id] > 0, old = has ? cur[pos[r.id]][1] : '';
+      if (old !== nv) log.push([now, 'suara', r.kecamatan, r.desa, r.nama_calon, old, nv]);
+      if (pos[r.id] === -1) return;                              // calon sama dua kali dalam satu kiriman
+      if (has) { cur[pos[r.id]][1] = nv; cur[pos[r.id]][2] = now; voteDirty = true; }
+      else { add.push([r.id, nv, now]); pos[r.id] = -1; }
+    });
+    const k = it.kecamatan + '|' + it.desa, i = dpos[k];
+    if (i != null && i > 0) {
+      if (dv[i][2] !== status) log.push([now, 'status', it.kecamatan, it.desa, '', dv[i][2], status]);
+      dv[i][2] = status; dv[i][3] = now; desaDirty = true;
+    } else if (i == null) { log.push([now, 'status', it.kecamatan, it.desa, '', '', status]); dadd.push([it.kecamatan, it.desa, status, now]); dpos[k] = -1; }
+    const suara = {}; Object.keys(vals).forEach(id => suara[id] = vals[id] === '' ? null : vals[id]);
+    Object.assign(out, { ok: true, status: status, updated: t, suara: suara });
+    results.push(out); patches.push({ d: it, status: status, vals: vals });
+  });
+  if (voteDirty && cur.length > 1) vs.getRange(2, 1, cur.length - 1, 3).setValues(cur.slice(1).map(r => [r[0], r[1], r[2]]));
+  if (add.length) vs.getRange(vs.getLastRow() + 1, 1, add.length, 3).setValues(add);
+  if (desaDirty && dv.length > 1) ds.getRange(2, 3, dv.length - 1, 2).setValues(dv.slice(1).map(r => [r[2], r[3]]));
+  if (dadd.length) ds.getRange(ds.getLastRow() + 1, 1, dadd.length, 4).setValues(dadd);
+  log_(log);
+  const saved = results.filter(r => r.ok).length;
+  if (saved) {
+    const rev = Date.now();
+    patchDashMany_(patches, t, rev);                     // cache ditambal dulu, baru REV diumumkan
+    bumpRev_(t, rev);
+  }
+  return { ok: true, info: saved + ' desa tersimpan.', results: results };
 }
 
 function fotoFolder_() {
