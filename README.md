@@ -35,7 +35,7 @@ Cara kerja:
 - Data lengkap (`/api/data`, cache CDN 2 dtk) hanya diunduh kalau revisi berubah, plus pengaman tiap 5 menit.
 - Saat admin menyimpan suara, Apps Script langsung menambal cache dashboard, jadi publik melihat angka baru dalam kira-kira 5-15 detik.
 - Untuk menghemat kuota Vercel Hobby (1 juta edge request per bulan), naikkan `POLL_ACTIVE` di `public/index.html` (mis. 15000) bila pengunjung sangat banyak.
-- Admin: login sekali, sesi 14 hari disimpan di browser (bisa dimatikan dengan menghapus centang "Tetap masuk"). Tombol Keluar mengakhiri sesi. Menu Quick Count > "Keluarkan semua sesi admin" untuk mencabut semua perangkat.
+- Admin: login sekali, sesi 14 hari disimpan di cookie HttpOnly `qcs` (tidak bisa dibaca JavaScript). Cookie `qca=1` memberi tahu halaman bahwa admin sudah masuk, jadi /admin langsung menampilkan panel dari data terakhir di perangkat lalu memperbarui di belakang. Hapus centang "Tetap masuk" agar sesi berakhir saat browser ditutup. Tombol Keluar menghapus cookie dan data tersimpan. Menu Quick Count > "Keluarkan semua sesi admin" untuk mencabut semua perangkat.
 - Simpan suara berjalan di latar belakang: admin bisa langsung lanjut ke desa berikutnya; status penyimpanan tampil di kanan atas, desa yang gagal bisa dicoba lagi.
 
 ## Input per kecamatan (admin)

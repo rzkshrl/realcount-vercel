@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <link rel="icon" href="/img/favicon.png" type="image/png">
+<script>if(document.cookie.split(';').some(function(x){return x.trim()==='qca=1'}))document.documentElement.classList.add('authed')</script>
 <title>Admin Quick Count Pilkades Wonogiri 2026</title>
 <style>
 :root{color-scheme:light;--bg:#f1f4f5;--card:#fff;--ink:#1d1b17;--mut:#645f57;--line:rgba(29,27,23,.14);--acc:#b5121b;--fin:#16794a;--r-sm:8px;--r-lg:12px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s7:48px}
@@ -134,6 +135,7 @@ kbd{font:600 12px/1 "Jakarta",system-ui;padding:2px 6px;border:1px solid var(--l
 .gprog{position:absolute;left:0;top:0;height:3px;width:0;background:#d4b34a;transition:width .4s cubic-bezier(.2,.7,.2,1)}
 #glist.saving .gr.dirty{background:linear-gradient(90deg,#fffbea 30%,#fff3c4 50%,#fffbea 70%) 0 0/300% 100%;animation:sv 1.2s linear infinite}
 @keyframes sv{to{background-position:-150% 0}}
+html.authed #login{display:none!important}
 .btn.danger{background:#b42318;border-color:#b42318;margin-top:var(--s3)}
 </style>
 </head>
@@ -200,7 +202,7 @@ const ls={get(){try{return JSON.parse(localStorage.getItem(SK)||sessionStorage.g
 const MAXB=40*1024,W=240;
 const RAT={'4x6':[4,6],'3x4':[3,4],'1x1':[1,1]},AR={'4x6':'2/3','3x4':'3/4','1x1':'1/1'},RL={'4x6':'4 x 6 (potret)','3x4':'3 x 4','1x1':'1 x 1 (persegi)'};
 let TPN=0;const tp=on=>{TPN=Math.max(0,TPN+(on?1:-1));$('tp').classList.toggle('on',TPN>0)};
-const call=(fn,data)=>{tp(true);return fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn,key:SES?'':KEY,session:SES||undefined,data})}).then(r=>r.json()).finally(()=>tp(false))};
+const call=(fn,data,extra)=>{tp(true);return fetch('/api/admin',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({fn,key:KEY||undefined,session:SES||undefined,data},extra||{}))}).then(r=>r.json()).finally(()=>tp(false))};
 /* tombol sibuk: spinner + teks proses, tidak bisa diklik dua kali */
 function busy(b,on,label){if(!b)return;if(on){b.dataset.t=b.dataset.t||b.textContent;b.classList.add('busy');b.disabled=true;b.setAttribute('aria-busy','true');if(label)b.textContent=label}
  else{b.classList.remove('busy');b.disabled=false;b.removeAttribute('aria-busy');if(b.dataset.t){b.textContent=b.dataset.t;delete b.dataset.t}}}
@@ -274,26 +276,43 @@ const opt=(t,v)=>{const o=el('option',null,t);o.value=v;return o};
 async function run(fn,data,m){m.className='st load';m.textContent='Menyimpan...';
  try{const r=await call(fn,data);
   if(r.error){if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return null}m.textContent=r.error;return null}
-  S={calon:r.calon,desa:r.desa};return r}
+  S={calon:r.calon,desa:r.desa};saveS();return r}
  catch(e){m.textContent='Gagal terhubung. Coba lagi.';return null}}
-function enter(r){S={calon:r.calon,desa:r.desa};$('login').hidden=true;$('work').hidden=false;$('hr').hidden=false;$('key').value='';KEY='';fillK()}
+/* Data admin terakhir disimpan di perangkat supaya panel langsung tampil; data terbaru diambil di belakang */
+const DC='qc-admin-data';let VTOUCH=false,SAVEST=0;
+function saveS(){clearTimeout(SAVEST);SAVEST=setTimeout(()=>{try{localStorage.setItem(DC,JSON.stringify({t:Date.now(),S}))}catch(e){}},300)}
+function cachedS(){try{const v=JSON.parse(localStorage.getItem(DC)||'null');return v&&v.S&&Array.isArray(v.S.calon)?v:null}catch(e){return null}}
+function showPanel(){document.documentElement.classList.add('authed');$('login').hidden=true;$('work').hidden=false;$('hr').hidden=false}
+function enter(r){S={calon:r.calon,desa:r.desa};saveS();showPanel();$('key').value='';KEY='';fillK()}
 $('go').onclick=async()=>{KEY=$('key').value;SES='';if(!KEY){$('msg').textContent='Isi kunci admin.';return}
  busy($('go'),true,'Memeriksa kunci...');$('msg').className='st';$('msg').textContent='';
- try{const r=await call('login');
-  if(r.error){$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah, atau terkunci 10 menit setelah 10 kali salah.':r.error;return}
-  if(r.session){SES=r.session;ls.set({session:r.session,exp:r.exp},$('rem').checked)}
-  $('go').textContent='Memuat data desa...';enter(r)}catch(e){$('msg').textContent='Gagal terhubung. Periksa internet, lalu coba lagi.'}
+ try{const r=await call('login',undefined,{remember:$('rem').checked});
+  if(r.error){KEY='';$('msg').textContent=r.error==='unauthorized'?'Kunci admin salah, atau terkunci 10 menit setelah 10 kali salah.':r.error;return}
+  $('go').textContent='Memuat data desa...';enter(r)}catch(e){KEY='';$('msg').textContent='Gagal terhubung. Periksa internet, lalu coba lagi.'}
  finally{busy($('go'),false)}};
-function logout(msg){const s=SES;SES='';KEY='';ls.clear();
- if(s)fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn:'logout',session:s})}).catch(()=>{});
+function logout(msg){SES='';KEY='';ls.clear();try{localStorage.removeItem(DC)}catch(e){}
+ fetch('/api/admin',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({fn:'logout'})}).catch(()=>{});
+ document.documentElement.classList.remove('authed');
  $('work').hidden=true;$('hr').hidden=true;$('login').hidden=false;$('msg').className='st';$('msg').textContent=msg||'';$('key').focus()}
 $('out').onclick=()=>{if(PEND.size&&!confirm('Masih ada data yang sedang disimpan. Tetap keluar?'))return;logout('Anda sudah keluar.')};
-(async()=>{const v=ls.get();if(!v||!v.session||v.exp<Date.now()){ls.clear();return}
- SES=v.session;$('msg').className='st load';$('msg').textContent='Membuka panel admin...';busy($('go'),true,'Membuka panel...');
- try{const r=await call('list');if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return}
-  if(r.error){$('msg').className='st';$('msg').textContent=r.error;return}enter(r);$('msg').textContent=''}
- catch(e){$('msg').className='st';$('msg').textContent='Gagal terhubung. Muat ulang halaman untuk mencoba lagi.'}
- finally{busy($('go'),false)}})();
+/* Saat dibuka: kalau cookie login ada, panel langsung tampil dari data tersimpan, lalu diperbarui di belakang */
+setTimeout(async()=>{const legacy=ls.get(),hasCookie=document.cookie.split(';').some(x=>x.trim()==='qca=1');
+ if(legacy&&legacy.session&&legacy.exp>Date.now())SES=legacy.session;else ls.clear();   // sesi versi lama: dipindah ke cookie sekali
+ if(!hasCookie&&!SES)return;
+ const c=cachedS();showPanel();
+ if(c){S=c.S;fillK()}else $('vform').replaceChildren(el('p','st load','Memuat data desa...'));
+ $('sync').className='sync busy';$('synct').textContent='Memperbarui data...';
+ try{const r=await call('list');
+  if(expired(r)){logout('Sesi berakhir. Masuk lagi dengan kunci admin.');return}
+  if(r.error){$('synct').textContent='Gagal memperbarui';$('sync').className='sync bad';return}
+  if(SES){SES='';ls.clear()}
+  const k=$('fk').value,d=$('fd').value,focusIn=document.activeElement&&document.activeElement.closest('#vform,#glist,#list');
+  S={calon:r.calon,desa:r.desa};saveS();
+  if(!c)fillK();
+  else if(VTOUCH||focusIn||(TAB==='g'&&dirtyList().length)){relabel();if(TAB==='g')$('gsum').textContent=gsum(S.desa.filter(x=>x.kecamatan===$('fk').value))}   // jangan hapus yang sedang diketik
+  else fillK(k,d)}
+ catch(e){$('synct').textContent='Offline · data tersimpan';$('sync').className='sync bad';return}
+ syncUI()},0);
 $('key').onkeydown=e=>{if(e.key==='Enter')$('go').click()};
 function fillK(k,d){const ks=[...new Set(S.calon.map(c=>c.kecamatan))];
  $('fk').replaceChildren(...ks.map(x=>opt(x,x)));if(k&&ks.includes(k))$('fk').value=k;
@@ -307,7 +326,7 @@ document.querySelectorAll('[role=tab]').forEach(b=>b.onclick=()=>{TAB=b.dataset.
 function show(){const c={};S.desa.forEach(x=>c[x.status]=(c[x.status]||0)+1);
  $('sum').textContent='Final '+(c.Final||0)+' · Sementara '+(c.Sementara||0)+' · Belum masuk '+(c['Belum masuk']||0)+' dari '+S.desa.length+' desa';
  if(TAB==='v')vote();if(TAB==='g')gridv();if(TAB==='c')cards()}
-function vote(){
+function vote(){VTOUCH=false;
  const k=$('fk').value,d=$('fd').value,cs=act(k,d),i=inf(k,d),box=$('vform');
  if(!cs.length){box.replaceChildren(el('p','st','Desa ini belum punya calon aktif. Tambahkan atau aktifkan di tab Calon dan foto.'));return}
  const ins=[],pcs=[],tot=el('b','','0'),m=el('p','st',FLASH);m.dataset.msg='1';if(FLASH){m.className='st q';m.dataset.for=FLASHK}FLASH='';FLASHK='';
@@ -320,7 +339,7 @@ function vote(){
  const calc=()=>{const t=ins.reduce((a,x)=>a+(+x.value||0),0);tot.textContent=nf(t);
   ins.forEach((x,n)=>pcs[n].textContent=x.value!==''&&t>0?(+x.value/t*100).toFixed(2)+'%':'');
   if(st.value===STAT[0]&&ins.some(x=>x.value!==''))st.value=STAT[1]};
- ins.forEach(x=>x.oninput=calc);
+ ins.forEach(x=>x.oninput=()=>{VTOUCH=true;calc()});
  const b1=el('button','btn','Simpan'),b2=el('button','btn alt','Simpan dan lanjut ke desa berikutnya');b1.type=b2.type='button';
  const save=async next=>{b1.disabled=b2.disabled=true;const suara={};ins.forEach(x=>suara[x.dataset.id]=x.value.trim());
   b1.disabled=b2.disabled=false;
@@ -353,7 +372,7 @@ async function pump(){if(RUN)return;RUN=true;
    S.calon.forEach(c=>{if(r.suara&&r.suara.hasOwnProperty(c.id))c.suara=r.suara[c.id]});
    if(!QUEUE.some(q=>q.kecamatan+'|'+q.desa===key))PEND.delete(key)}
   else{FAIL[key]={job:Object.assign({},j,{sent:false}),error:(r&&r.error)||err||'Gagal menyimpan'};if(!QUEUE.some(q=>q.kecamatan+'|'+q.desa===key))PEND.delete(key)}
-  syncUI(true)}
+  saveS();syncUI(true)}
  RUN=false}
 function dlabel(x){const k=x.kecamatan+'|'+x.desa;return x.desa+'  ('+x.status+')'+(FAIL[k]?' · GAGAL DISIMPAN':PEND.has(k)?' · menyimpan…':'')}
 function relabel(){const k=$('fk').value;[...$('fd').options].forEach(o=>{const x=S.desa.find(x=>x.kecamatan===k&&x.desa===o.value);if(x)o.textContent=dlabel(x)})}
@@ -455,7 +474,7 @@ async function gsave(){const list=dirtyList();if(!list.length)return;
     delete DR[key];delete GERR[key];done++}
    else{GERR[key]=x.error;fail++}})}
  $('gprog').style.width='100%';setTimeout(()=>$('gprog').style.width='0',400);$('glist').classList.remove('saving');
- GBUSY=false;saveDR();gridv();
+ GBUSY=false;saveDR();saveS();gridv();
  $('gmsg').className=fail?'st':'st ok';
  $('gmsg').textContent=(done?done+' desa tersimpan. ':'')+(fail?fail+' desa gagal, lihat tanda merah lalu simpan lagi.':'Dashboard ikut berubah dalam beberapa detik.');
  if(fail){const r=$('glist').querySelector('.gr .ge:not(:empty)');r&&r.closest('.gr').scrollIntoView({block:'center'})}}
