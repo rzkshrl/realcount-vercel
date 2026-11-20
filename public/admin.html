@@ -140,7 +140,7 @@ html.authed #login{display:none!important}
 </style>
 </head>
 <body>
-<div class="tp" id="tp" aria-hidden="true"><i></i></div>
+<div class="tp" id="topbar" aria-hidden="true"><i></i></div>
 <header class="band"><div class="wrap hd"><img src="/img/seal.webp" width="40" height="50" alt=""><div><h1>Admin Quick Count Pilkades Wonogiri</h1><a class="lnk" href="/">Lihat dashboard</a></div><div class="hr" id="hr" hidden><span class="sync" id="sync" role="status" aria-live="polite"><i></i><span id="synct">Semua tersimpan</span></span><button class="btn out" id="out" type="button">Keluar</button></div></div></header>
 <div class="fail" id="fail" role="alert" hidden><div class="wrap"><span id="failt"></span><button class="btn" id="retry" type="button">Coba simpan lagi</button></div></div>
 <main><div class="wrap">
@@ -201,7 +201,7 @@ const ls={get(){try{return JSON.parse(localStorage.getItem(SK)||sessionStorage.g
  clear(){try{localStorage.removeItem(SK);sessionStorage.removeItem(SK)}catch(e){}}};
 const MAXB=40*1024,W=240;
 const RAT={'4x6':[4,6],'3x4':[3,4],'1x1':[1,1]},AR={'4x6':'2/3','3x4':'3/4','1x1':'1/1'},RL={'4x6':'4 x 6 (potret)','3x4':'3 x 4','1x1':'1 x 1 (persegi)'};
-let TPN=0;const tp=on=>{TPN=Math.max(0,TPN+(on?1:-1));$('tp').classList.toggle('on',TPN>0)};
+let TPN=0;const tp=on=>{TPN=Math.max(0,TPN+(on?1:-1));$('topbar').classList.toggle('on',TPN>0)};
 const call=(fn,data,extra)=>{tp(true);return fetch('/api/admin',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(Object.assign({fn,key:KEY||undefined,session:SES||undefined,data},extra||{}))}).then(r=>r.json()).finally(()=>tp(false))};
 /* tombol sibuk: spinner + teks proses, tidak bisa diklik dua kali */
 function busy(b,on,label){if(!b)return;if(on){b.dataset.t=b.dataset.t||b.textContent;b.classList.add('busy');b.disabled=true;b.setAttribute('aria-busy','true');if(label)b.textContent=label}

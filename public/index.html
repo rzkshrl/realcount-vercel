@@ -241,7 +241,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
 </head>
 <body>
 <a class="skip" href="#main">Lewati ke konten</a>
-<div class="tp" id="tp" aria-hidden="true"><i></i></div>
+<div class="tp" id="topbar" aria-hidden="true"><i></i></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
  <defs>
@@ -271,7 +271,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
  <div class="wrap">
   <h1 class="in d2">Quick Count Pilkades Serentak<span>Kabupaten Wonogiri</span></h1>
   <div class="year in">Tahun 2026</div>
-  <div class="live busy in d4" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="lt">Memuat data...</span><span class="ckt" id="ck"></span><button class="rf" id="rf" type="button">Perbarui</button></div>
+  <div class="live busy in d4" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="lt">Memuat data...</span><span class="ckt" id="cktime"></span><button class="rf" id="rf" type="button">Perbarui</button></div>
  </div>
 </header>
 
@@ -382,7 +382,7 @@ function stamp(){return D&&D.last?'Pembaruan terakhir '+ts(D.last)+' WIB':'Belum
 function apply(d){const fresh=prep(d),next=snapshot(fresh);CHG=new Map();
  if(D&&!FIRST){next.forEach((v,k)=>{if(PREV.has(k)&&PREV.get(k)!==v)CHG.set(k,{from:PREV.get(k)||0,to:v||0})});UPD=true}
  PREV=next;store.set('qc-cache',d);D=fresh;init();render();UPD=false;CHG=new Map();FIRST=false}
-function tp(on){TPN=Math.max(0,TPN+(on?1:-1));$('tp').classList.toggle('on',TPN>0)}
+function tp(on){TPN=Math.max(0,TPN+(on?1:-1));$('topbar').classList.toggle('on',TPN>0)}
 /* Terapkan catatan perubahan (desa yang berubah saja). Berhasil hanya kalau rantai revisi utuh dari MARK sampai m. */
 function applyDelta(v,m){if(!D||FROMCACHE||!Array.isArray(v.chg)||!v.chg.length)return false;
  const list=[...v.chg].sort((a,b)=>a.r-b.r),rows=new Map();let cur=MARK;
@@ -406,7 +406,7 @@ async function check(force){if(CHECKING)return;CHECKING=true;clearTimeout(TIMER)
   if(!force&&m!==MARK&&applyDelta(v,m)){setLive('ok',stamp());flash()}                       // cepat: hanya desa yang berubah
   else if(!D||FROMCACHE||force||m!==MARK||Date.now()-FULLAT>5*60e3){const isNew=await loadFull(m);setLive('ok',stamp());if(isNew)flash()}
   else setLive('ok',stamp());
-  $('ck').textContent='dicek '+ts(CHECKED).split(', ')[1];$('live').title='Terakhir dicek '+ts(CHECKED)+' WIB'}
+  $('cktime').textContent='dicek '+ts(CHECKED).split(', ')[1];$('live').title='Terakhir dicek '+ts(CHECKED)+' WIB'}
  catch(e){if(D)setLive('off',(FROMCACHE?'Data tersimpan · ':'')+stamp()+' · gagal memperbarui');else showErr()}
  finally{CHECKING=false;$('rf').classList.remove('busy');schedule()}}
 function schedule(){clearTimeout(TIMER);if(document.hidden)return;
