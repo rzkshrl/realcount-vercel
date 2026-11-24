@@ -173,6 +173,28 @@ button.ph:hover img{transform:scale(1.03)}
 .loadmsg{display:flex;align-items:center;justify-content:center;gap:var(--s3);grid-column:1/-1;padding:var(--s5);color:var(--mut);font-weight:600}
 .loadmsg::before{content:"";width:18px;height:18px;border:2.5px solid var(--red);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
 .enter{animation:rise .45s var(--ease) both}
+.chw{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.tpsn{font-size:12px;font-weight:700;color:var(--mut);white-space:nowrap}
+.tpsd{margin-top:var(--s3);border-top:1px solid var(--line);padding-top:var(--s2)}
+.tpsd summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;font-weight:700;font-size:15px;list-style:none;color:var(--ink)}
+.tpsd summary::-webkit-details-marker{display:none}
+.tpsd summary::after{content:"";width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s var(--ease);margin-right:6px}
+.tpsd[open] summary::after{transform:rotate(-135deg)}
+.tpsd summary:hover{color:var(--red)}
+.tpsd.fresh summary{color:var(--red)}
+.tpsw{overflow-x:auto}
+.tpst{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tpst th,.tpst td{padding:6px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.tpst th:first-child,.tpst td:first-child{text-align:left;white-space:normal}
+.tpst th{font-size:13px;color:var(--mut);font-weight:700}
+.tpst th span{margin-right:4px}
+.tdot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#cfd3d8;vertical-align:1px}.tdot.Sementara{background:var(--semB)}.tdot.Final{background:var(--fin)}
+.tpst .tot{font-weight:800}
+.tpst tr.sum td{font-weight:700}
+.tpst tr.st td{font-size:12px;color:var(--mut);border-bottom:0}
+.tpst td.chg{animation:flash 2.4s var(--ease) both;font-weight:800;color:var(--red)}
+@media (max-width:480px){.tpst{font-size:13px}.tpst th,.tpst td{padding:6px 3px}.tpst th{font-size:12px}.tpst th span{margin-right:2px}.tpst td:first-child{max-width:96px;overflow-wrap:anywhere}.tpst tr.st td{font-size:11px}}
+
 /* tanda setiap data baru masuk */
 .cal{position:relative;isolation:isolate;overflow:clip}
 .cal.upd::after{content:"";position:absolute;inset:0;z-index:-1;border-radius:var(--r-sm);background:linear-gradient(100deg,transparent 20%,rgba(212,179,74,.22) 50%,transparent 80%);transform:translateX(-100%);animation:sweep 1s var(--ease) both;animation-delay:var(--dl,0s)}
@@ -279,7 +301,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
  <div class="wrap">
   <section class="panel notice" aria-labelledby="h-not">
    <h2 id="h-not">Perhatian</h2>
-   <p>Quick Count ini adalah penghitungan cepat sementara berdasarkan laporan petugas kecamatan, dengan tingkat akurasi sekitar 75%. Angka dapat berbeda dari hasil sebenarnya dan <b>bukan hasil resmi</b>. Hasil resmi hanya yang ditetapkan oleh Panitia Pemilihan Kepala Desa berdasarkan berita acara.</p>
+   <p>Quick Count ini adalah penghitungan cepat sementara berdasarkan laporan operator desa dari setiap TPS (3 TPS per desa), dengan tingkat akurasi sekitar 75%. Angka dapat berbeda dari hasil sebenarnya dan <b>bukan hasil resmi</b>. Hasil resmi hanya yang ditetapkan oleh Panitia Pemilihan Kepala Desa berdasarkan berita acara.</p>
   </section>
 
   <section class="panel" aria-labelledby="h-sum">
@@ -297,7 +319,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
   <section class="panel" aria-labelledby="h-gr">
    <h2 id="h-gr">Grafik</h2>
    <div class="charts">
-    <article class="chart"><h3>Status laporan desa</h3><div class="dn" id="cs"><div class="sk" style="height:150px;width:100%"></div></div></article>
+    <article class="chart"><h3>Status laporan TPS</h3><div class="dn" id="cs"><div class="sk" style="height:150px;width:100%"></div></div></article>
     <article class="chart"><h3>Perolehan suara per desa</h3><label>Pilih desa<select id="cdsel"></select></label><div class="dn" id="cdv"><div class="sk" style="height:150px;width:100%"></div></div></article>
     <article class="chart wide"><h3>Suara masuk per kecamatan</h3><div id="ck"><div class="sk" style="height:200px"></div></div></article>
    </div>
@@ -367,7 +389,9 @@ const tv=d=>d.calon.reduce((a,c)=>a+(c.suara||0),0);
 
 function prep(d){(d.desa||[]).forEach(x=>{x.D=proper(x.desa);x.K=proper(x.kecamatan);x.calon=(x.calon||[]).map(c=>Object.assign({},c,{nama:proper(c.nama)}))});return d}
 const ckey=(d,c)=>c.id||key(d)+'|'+(c.nomor_urut||'')+'|'+c.nama;
-function snapshot(d){const m=new Map();(d.desa||[]).forEach(x=>x.calon.forEach(c=>m.set(ckey(x,c),c.suara==null?null:c.suara)));return m}
+function snapshot(d){const m=new Map();(d.desa||[]).forEach(x=>{x.calon.forEach(c=>m.set(ckey(x,c),c.suara==null?null:c.suara));
+ (x.tps||[]).forEach(t=>x.calon.forEach(c=>m.set('t:'+key(x)+'|'+t.no+'|'+c.id,t.s&&t.s[c.id]!=null?t.s[c.id]:null)))});return m}
+let TCHG=new Set();
 const TF=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'});
 const DF=new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short'});
 function ts(ms,withDay=true){const p={};TF.formatToParts(new Date(ms)).forEach(x=>p[x.type]=x.value);
@@ -381,7 +405,8 @@ function setLive(state,text){const l=$('live');l.classList.toggle('busy',state==
 function stamp(){return D&&D.last?'Pembaruan terakhir '+ts(D.last)+' WIB':'Belum ada data masuk'}
 function apply(d){const fresh=prep(d),next=snapshot(fresh);CHG=new Map();
  if(D&&!FIRST){next.forEach((v,k)=>{if(PREV.has(k)&&PREV.get(k)!==v)CHG.set(k,{from:PREV.get(k)||0,to:v||0})});UPD=true}
- PREV=next;store.set('qc-cache',d);D=fresh;init();render();UPD=false;CHG=new Map();FIRST=false}
+ TCHG=new Set([...CHG.keys()].filter(k=>k.startsWith('t:')).map(k=>k.slice(2)));
+ PREV=next;store.set('qc-cache',d);D=fresh;init();render();UPD=false;CHG=new Map();TCHG=new Set();FIRST=false}
 function tp(on){TPN=Math.max(0,TPN+(on?1:-1));$('topbar').classList.toggle('on',TPN>0)}
 /* Terapkan catatan perubahan (desa yang berubah saja). Berhasil hanya kalau rantai revisi utuh dari MARK sampai m. */
 function applyDelta(v,m){if(!D||FROMCACHE||!Array.isArray(v.chg)||!v.chg.length)return false;
@@ -438,9 +463,9 @@ function countUp(node,to,fmt,from=0,force){if(RM||!(FIRST||force)||to===from){no
  const step=t=>{const k=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-k,3);node.textContent=fmt(Math.round(from+(to-from)*e));if(k<1)requestAnimationFrame(step)};requestAnimationFrame(step)}
 
 function renderCharts(ds,cnt,T){
- const ST=['Final','Sementara','Belum masuk'],rep=cnt.Final+cnt.Sementara;
- $('cs').replaceChildren(donut(ST.map(k=>({v:cnt[k],c:COL[k]})),rep+'/'+ds.length,'Status '+ds.length+' desa: '+ST.map(k=>cnt[k]+' '+k).join(', ')),
-  legend(ST.map(k=>[COL[k],k,cnt[k]+' desa ('+Math.round(cnt[k]/T*100)+'%)'])));
+ const ST=['Final','Sementara','Belum masuk'],tc=tpsCount(ds),TT=tc.all||1,rep=tc.Final+tc.Sementara;
+ $('cs').replaceChildren(donut(ST.map(k=>({v:tc[k],c:COL[k]})),rep+'/'+tc.all,'Status '+tc.all+' TPS: '+ST.map(k=>tc[k]+' '+k).join(', ')),
+  legend(ST.map(k=>[COL[k],k,tc[k]+' TPS ('+Math.round(tc[k]/TT*100)+'%)'])));
  const sel=$('cdsel');
  if(sel.options.length!==ds.length){const cur=sel.value,best=[...ds].sort((a,b)=>tv(b)-tv(a))[0];
   sel.replaceChildren(...[...ds].sort((a,b)=>a.D.localeCompare(b.D,'id')).map(x=>{const o=el('option',null,x.D+' (Kec. '+x.K+')');o.value=key(x);return o}));
@@ -456,21 +481,23 @@ function renderCharts(ds,cnt,T){
  $('ck').replaceChildren(...(mx>0?ent.map(([k,v])=>{const r=el('div','hr'),b=el('div','hbar'+(FIRST?' grow':'')),i=el('i');i.style.width=v/mx*100+'%';b.append(i);
   r.append(el('span',null,proper(k)),b,el('span','v',nf(v)));return r}):[el('p','empty','Belum ada suara masuk.')]))}
 
+function tpsCount(ds){const c={Final:0,Sementara:0,'Belum masuk':0,all:0};ds.forEach(d=>(d.tps||[]).forEach(t=>{c[t.status]=(c[t.status]||0)+1;c.all++}));return c}
 function render(){
  const ds=D.desa,fk=$('fk').value,q=$('q').value.trim().toLowerCase(),T=ds.length||1;
  const cnt={Final:0,Sementara:0,'Belum masuk':0};ds.forEach(d=>cnt[d.status]=(cnt[d.status]||0)+1);
+ const tc=tpsCount(ds),TT=tc.all||1,trep=tc.Final+tc.Sementara;
  const tot=ds.reduce((a,d)=>a+tv(d),0),rep=cnt.Final+cnt.Sementara;
- const K=[[rep,v=>nf(v)+' dari '+nf(ds.length),'Desa sudah melapor','var(--red)'],[cnt.Final,nf,'Desa berstatus final','var(--fin)'],[tot,nf,'Total suara masuk','var(--c0)']];
+ const K=[[trep,v=>nf(v)+' dari '+nf(tc.all),'TPS sudah melapor','var(--red)'],[cnt.Final,v=>nf(v)+' dari '+nf(ds.length),'Desa lengkap (semua TPS final)','var(--fin)'],[tot,nf,'Total suara sah masuk','var(--c0)']];
  const kp=KPREV;KPREV=K.map(x=>x[0]);
  $('kpi').replaceChildren(...K.map(([n,f,s,c],i)=>{const k=el('div','stat'),b=el('b');countUp(b,n,f,kp&&UPD?kp[i]:0,!!(kp&&UPD&&kp[i]!==n));k.append(b,el('span',null,s));k.style.setProperty('--c',c);return k}));
- const pr=$('prog'),p=el('p');p.append(el('span',null,'Progres laporan seluruh desa'),el('span',null,Math.round(rep/T*100)+'%'));
- const lg=el('ul','lg');[['Final',COL.Final],['Sementara',COL.Sementara],['Belum masuk',COL['Belum masuk']]].forEach(([l,c])=>{const li=el('li',null,l+' '+cnt[l]);li.style.setProperty('--c',c);lg.append(li)});
- pr.replaceChildren(p,seg([[cnt.Final/T*100,COL.Final],[cnt.Sementara/T*100,COL.Sementara]]),lg);
+ const pr=$('prog'),p=el('p');p.append(el('span',null,'Progres laporan seluruh TPS'),el('span',null,Math.round(trep/TT*100)+'%'));
+ const lg=el('ul','lg');[['Final',COL.Final],['Sementara',COL.Sementara],['Belum masuk',COL['Belum masuk']]].forEach(([l,c])=>{const li=el('li',null,l+' '+tc[l]+' TPS');li.style.setProperty('--c',c);lg.append(li)});
+ pr.replaceChildren(p,seg([[tc.Final/TT*100,COL.Final],[tc.Sementara/TT*100,COL.Sementara]]),lg);
  renderCharts(ds,cnt,T);
- const by={};ds.forEach(d=>{const x=by[d.kecamatan]=by[d.kecamatan]||{t:0,Final:0,Sementara:0};x.t++;if(x[d.status]!=null)x[d.status]++});
+ const by={};ds.forEach(d=>{const x=by[d.kecamatan]=by[d.kecamatan]||{t:0,Final:0,Sementara:0};(d.tps||[]).forEach(t=>{x.t++;if(x[t.status]!=null)x[t.status]++})});
  $('kl').replaceChildren(...Object.entries(by).sort((a,b)=>a[0].localeCompare(b[0],'id')).map(([k,x])=>{
   const li=el('li'),b=el('button','kr');b.type='button';b.setAttribute('aria-pressed',String(fk===k));
-  b.append(el('span',null,proper(k)),el('small',null,(x.Final+x.Sementara)+'/'+x.t+' desa'),seg([[x.Final/x.t*100,COL.Final],[x.Sementara/x.t*100,COL.Sementara]]));
+  b.append(el('span',null,proper(k)),el('small',null,(x.Final+x.Sementara)+'/'+x.t+' TPS'),seg([[x.Final/(x.t||1)*100,COL.Final],[x.Sementara/(x.t||1)*100,COL.Sementara]]));
   b.onclick=()=>{const on=fk!==k;$('fk').value=on?k:'';FOCUS='';SHOW=PAGE;render();if(on)$('hasil').scrollIntoView({behavior:RM?'auto':'smooth'})};
   li.append(b);return li}));
  if(!$('kll').childElementCount)[['Final',COL.Final],['Sementara',COL.Sementara],['Belum masuk',COL['Belum masuk']]].forEach(([l,c])=>{const li=el('li',null,l);li.style.setProperty('--c',c);$('kll').append(li)});
@@ -491,7 +518,8 @@ function ib(html,label,fn,pressed){const b=el('button','ib');b.type='button';b.i
 function card(d,focus){
  const c=el('article','card'+(focus?' focus':'')),h=el('div','ch'),l=el('div');
  l.append(el('h3',null,d.D),el('p',null,'Kec. '+d.K));
- h.append(l,el('span','chip '+String(d.status).replace(' ','-'),d.status));c.append(h);
+ const tn=(d.tps||[]).filter(t=>t.status!=='Belum masuk').length,cw=el('div','chw');cw.append(el('span','chip '+String(d.status).replace(' ','-'),d.status));
+ if(d.tps&&d.tps.length)cw.append(el('span','tpsn',tn+'/'+d.tps.length+' TPS masuk'));h.append(l,cw);c.append(h);
  if(d.updated)c.append(el('p','upd-at','Diperbarui '+ts(d.updated,false)+' WIB'));
  let changed=false;
  const v=d.calon.map(x=>x.suara||0),sum=v.reduce((a,b)=>a+b,0),max=Math.max(0,...v);
@@ -505,7 +533,7 @@ function card(d,focus){
   if(x.foto){const im=new Image();im.loading='lazy';im.decoding='async';im.width=56;im.height=84;im.src=x.foto;im.alt='Foto '+x.nama;im.onerror=()=>im.remove();ph.append(im)}
   const b=el('div'),n=el('div','nm',x.nama);if(lead)n.append(el('span','tag','Unggul'));
   const pct=sum>0&&x.suara!=null?x.suara/sum*100:0,t=el('div','vt'),sv=el('span'),num=el('span',null,nf(x.suara));
-  sv.append(num,' suara');t.append(sv,el('b',null,sum>0?pf(pct):'-'));
+  sv.append(num,' suara sah');t.append(sv,el('b',null,sum>0?pf(pct):'-'));
   const sg=seg([[pct]]),ch=UPD?CHG.get(ckey(d,x)):null;
   if(UPD){r.classList.add('upd');r.style.setProperty('--dl',(i*.08)+'s')}
   if(ch){changed=true;r.classList.add('chg');const df=ch.to-ch.from,dl=el('span','dlt'+(df<0?' neg':''),(df>0?'+':'−')+nf(Math.abs(df)));sv.append(dl);
@@ -514,6 +542,7 @@ function card(d,focus){
    if(!RM){bar.style.width=fromPct+'%';requestAnimationFrame(()=>requestAnimationFrame(()=>bar.style.width=pct+'%'))}}
   b.append(n,sg,t);r.append(ph,b);c.append(r)});
  if(changed)c.classList.add('fresh');
+ if(d.tps&&d.tps.length&&d.calon.length)c.append(tpsTable(d));
  const s=[...v].sort((a,b)=>b-a);
  if(d.calon.length>1&&sum>0)c.append(el('p','gap',s[0]===s[1]?'Dua calon teratas sama suara.':'Selisih '+nf(s[0]-s[1])+' suara dari urutan kedua.'));
  const k=key(d),on=PIN.has(k),a=el('div','acts');
@@ -521,10 +550,27 @@ function card(d,focus){
   ib(ICON.share,'Bagikan',()=>share(d)));
  c.append(a);return c}
 
+/* Rincian per TPS: dibuka/ditutup per desa, sel yang baru berubah ditandai */
+const OPEN=new Set(store.get('qc-open',[]));
+function tpsTable(d){const k=key(d),det=el('details','tpsd'),sm=el('summary',null,'Rincian TPS');det.open=OPEN.has(k);
+ det.addEventListener('toggle',()=>{det.open?OPEN.add(k):OPEN.delete(k);store.set('qc-open',[...OPEN])});
+ const w=el('div','tpsw'),tb=el('table','tpst'),hr=el('tr');hr.append(el('th',null,'Calon'));
+ d.tps.forEach(t=>{const th=el('th');th.append(el('span',null,'TPS '+t.no),el('i','tdot '+t.status.replace(' ','-')));th.title=t.status+(t.updated?' · '+ts(t.updated)+' WIB':'');hr.append(th)});
+ hr.append(el('th',null,'Total'));const thead=el('thead');thead.append(hr);const body=el('tbody');
+ d.calon.forEach(x=>{const r=el('tr');r.append(el('td',null,(x.nomor_urut?x.nomor_urut+'. ':'')+x.nama));
+  d.tps.forEach(t=>{const v=t.s?t.s[x.id]:null,td=el('td',null,v==null?'–':nf(v));if(UPD&&TCHG.has(k+'|'+t.no+'|'+x.id))td.className='chg';r.append(td)});
+  r.append(el('td','tot',x.suara==null?'–':nf(x.suara)));body.append(r)});
+ const fr=el('tr','sum');fr.append(el('td',null,'Total suara sah'));
+ d.tps.forEach(t=>{const s=d.calon.reduce((a,x)=>a+((t.s&&t.s[x.id])||0),0),any=d.calon.some(x=>t.s&&t.s[x.id]!=null);fr.append(el('td',null,any?nf(s):'–'))});
+ fr.append(el('td','tot',nf(tv(d))));body.append(fr);
+ const st=el('tr','st');st.append(el('td',null,'Status'));d.tps.forEach(t=>st.append(el('td',null,t.status==='Belum masuk'?'Belum':t.status)));st.append(el('td'));body.append(st);
+ tb.append(thead,body);w.append(tb);det.append(sm,w);
+ if(UPD&&[...TCHG].some(x=>x.startsWith(k+'|')))det.classList.add('fresh');
+ return det}
 function share(d){
  const url=location.origin+'/#desa='+encodeURIComponent(key(d)),sum=tv(d);
  const lines=d.calon.map((x,i)=>(x.nomor_urut||i+1)+'. '+x.nama+': '+nf(x.suara||0)+' suara'+(sum?' ('+pf((x.suara||0)/sum*100)+')':''));
- const text='Quick Count Pilkades Wonogiri 2026\nDesa '+d.D+', Kec. '+d.K+' ('+d.status+')'+(d.updated?'\nDiperbarui '+ts(d.updated)+' WIB':'')+'\n'+lines.join('\n')+'\n\nHasil sementara, bukan hasil resmi.';
+ const text='Quick Count Pilkades Wonogiri 2026\nDesa '+d.D+', Kec. '+d.K+' ('+d.status+(d.tps?', '+d.tps.filter(t=>t.status!=='Belum masuk').length+'/'+d.tps.length+' TPS masuk':'')+')'+(d.updated?'\nDiperbarui '+ts(d.updated)+' WIB':'')+'\n'+lines.join('\n')+'\n\nHasil sementara, bukan hasil resmi.';
  if(navigator.share)navigator.share({title:'Quick Count Desa '+d.D,text,url}).catch(()=>{});
  else window.open('https://wa.me/?text='+encodeURIComponent(text+'\n'+url),'_blank','noopener')}
 let tt;function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2200)}

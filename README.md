@@ -50,3 +50,40 @@ Cara kerja:
 - Setiap simpan suara, Apps Script mencatat desa yang berubah (60 detik terakhir) di cache `chg`. `/api/rev` ikut membawa catatan ini.
 - Dashboard menerapkan catatan itu langsung (tanpa mengunduh data lengkap) bila rantai revisinya utuh. Kalau tidak utuh (misalnya calon/foto diubah, reset, edit manual di sheet), dashboard otomatis mengunduh data lengkap.
 - Polling adaptif: 5 dtk selama 2 menit setelah ada perubahan, 8 dtk normal, 30 dtk bila pengunjung diam > 10 menit, berhenti saat tab disembunyikan.
+
+
+## Versi TPS + akun desa (November 2026)
+Alur baru:
+- **49 akun desa** (username + sandi). Akun desa hanya melihat desanya sendiri dan hanya bisa mengisi suara sah di 3 TPS desanya.
+  Tidak bisa mengubah calon, foto, akun, atau mengosongkan data. Dicek di Apps Script, bukan hanya disembunyikan di layar.
+- **Suara dicatat per TPS** (147 TPS = 49 desa x 3). Total desa = jumlah 3 TPS. Status desa otomatis:
+  Final bila 3 TPS Final, Sementara bila ada TPS yang sudah mengirim, Belum masuk bila belum ada.
+- **Final mengunci TPS** untuk akun desa (ada konfirmasi sebelum mengunci). Kabupaten membuka kunci dengan mengubah status ke Sementara di "Input per desa".
+- **Kabupaten** masuk dengan ADMIN_KEY + nama (nama dicatat di Riwayat). Tab: Monitoring (diperbarui tiap 20 detik), Input per desa (3 TPS berdampingan),
+  Input per kecamatan (satu baris per TPS), Calon dan foto, Akun desa (reset sandi, nonaktifkan, keluarkan perangkat), Riwayat, Pengaturan.
+- **Salah sandi dihitung per akun** (10x salah -> akun itu saja menunggu 10 menit).
+- Peringatan (tidak memblokir): total satu TPS di atas 600 suara sah (`TPS_WARN` di `public/admin.html`), atau angka berubah jauh dari sebelumnya.
+- Dashboard publik: progres dihitung per TPS (x/147), kartu desa menampilkan "n/3 TPS masuk" dan tabel "Rincian TPS". Nama operator tidak pernah tampil di publik.
+
+### Sheet baru (sheet lama Desa, Suara, Log tidak dipakai dan tidak diubah)
+| Sheet | Isi |
+|---|---|
+| TPS | tps_id, kecamatan, desa, no_tps (dibuat otomatis 3 per desa) |
+| Suara_TPS | tps_id, calon_id, suara, updated, oleh |
+| TPS_Status | tps_id, status, updated, oleh |
+| Akun | username, role, kecamatan, desa, salt, hash, aktif, last_login (sandi tidak disimpan sebagai teks) |
+| Akun_Cetak | sandi awal, SEKALI tampil. Bagikan ke operator lalu HAPUS sheet ini |
+| Riwayat | semua perubahan + siapa yang mengubah |
+
+### Cara pasang
+1. **Buat salinan spreadsheet** dulu (File > Make a copy) sebagai cadangan.
+2. Ganti seluruh isi Code.gs dengan `apps-script/Code.gs`, simpan.
+3. Jalankan `setupDB` (menu Quick Count > Setup database). Log akan menulis "TPS: 147, akun baru: 49".
+4. Buka sheet **Akun_Cetak**: username + sandi awal 49 desa. Bagikan ke operator masing-masing, lalu **hapus sheet itu**.
+5. Jalankan `diagnose` dan pastikan semuanya OK.
+6. Deploy > Manage deployments > Edit > Version: New version > Deploy (URL /exec tetap).
+7. Push folder ini ke Vercel.
+8. Uji coba, lalu Pengaturan > Kosongkan semua suara sebelum hari H. Ganti ADMIN_KEY setelah gladi.
+
+Operator lupa sandi: kabupaten > Akun desa > Reset sandi (sandi baru tampil sekali, perangkat lama otomatis keluar).
+Desa baru: tambah calon di "Calon dan foto" (3 TPS dibuat otomatis), lalu Akun desa > "Buat akun untuk desa baru".
