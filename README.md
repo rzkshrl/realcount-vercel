@@ -97,3 +97,10 @@ Desa baru: tambah calon di "Calon dan foto" (3 TPS dibuat otomatis), lalu Akun d
 - Foto dan angka suara di kartu diambil langsung dari quick count (ditandai "quick count"), dicocokkan per kecamatan + desa.
   Untuk petahana yang hasilnya belum ada, kartu menampilkan posisi sementara quick count (unggul/tertinggal).
 - Memperbarui hasil: ganti isi `public/data/petahana.json` (kolom "h": "MENANG" atau "KALAH" pada baris petahana), lalu push ke Vercel.
+
+
+## Hemat kuota Vercel (Edge Requests 1 juta/bulan)
+- Dashboard: cek data 20 dtk setelah ada perubahan, 30 dtk normal, 2 menit bila pengunjung diam > 3 menit, 5 menit bila semua TPS sudah Final. Berhenti saat tab disembunyikan.
+- Halaman Petahana: cek data tiap 5 menit.
+- Foto calon disimpan di browser 30 hari (foto baru otomatis punya alamat baru).
+- Nilai ada di `POLL_*` pada `public/index.html`.

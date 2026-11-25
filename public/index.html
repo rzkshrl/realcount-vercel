@@ -357,7 +357,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
  <svg class="deco wave-br" viewBox="0 0 540 360" aria-hidden="true"><use href="#wave"/></svg>
  <div class="wrap"><div class="fi">
   <img src="/img/seal.webp" width="103" height="128" alt="" loading="lazy">
-  <p><b>Quick Count Pilkades Serentak Kabupaten Wonogiri 2026</b>Hasil sementara, bukan hasil resmi. Halaman mengecek data baru otomatis setiap beberapa detik selama terbuka.</p>
+  <p><b>Quick Count Pilkades Serentak Kabupaten Wonogiri 2026</b>Hasil sementara, bukan hasil resmi. Halaman mengecek data baru otomatis secara berkala selama terbuka.</p>
   <img class="msbf" src="/img/msb.webp" width="540" height="239" alt="Wonogiri Maju Sejahtera Berkelanjutan" loading="lazy">
  </div></div>
 </footer>
@@ -381,7 +381,7 @@ const PAGE=24;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 let D=null,FS='',FIRST=true,SHOW=PAGE,FOCUS='',PIN=new Set(store.get('qc-pin',[])),FROMCACHE=false;
 /* Cek perubahan: permintaan kecil tiap POLL_ACTIVE; data lengkap hanya diambil kalau ada perubahan */
-const POLL_HOT=5000,POLL_ACTIVE=8000,POLL_IDLE=30000,IDLE_AFTER=10*60e3,HOT_FOR=2*60e3;   // HOT: 2 menit setelah ada perubahan (penghitungan sedang aktif)
+const POLL_HOT=20000,POLL_ACTIVE=30000,POLL_IDLE=120000,POLL_DONE=300000,IDLE_AFTER=3*60e3,HOT_FOR=2*60e3;   // hemat kuota Vercel: HOT 20 dtk setelah ada perubahan, 30 dtk normal, 2 mnt bila diam, 5 mnt bila semua TPS Final
 let MARK=0,RETRY=false,FULLAT=0,HOTAT=0,TPN=0,CHECKING=false,TIMER=0,LASTACT=Date.now(),TRIES={},PREV=new Map(),CHG=new Map(),UPD=false,KPREV=null,CHECKED=0;
 
 /* Nama calon: Huruf Kapital di Awal Setiap Kata. Gelar sesudah koma dibiarkan seperti input. */
@@ -441,9 +441,9 @@ async function check(force){if(CHECKING)return;CHECKING=true;clearTimeout(TIMER)
  catch(e){if(D)setLive('off',(FROMCACHE?'Data tersimpan · ':'')+stamp()+' · gagal memperbarui');else showErr()}
  finally{CHECKING=false;$('rf').classList.remove('busy');schedule()}}
 function schedule(){clearTimeout(TIMER);if(document.hidden)return;
- const idle=Date.now()-LASTACT>IDLE_AFTER;
+ const idle=Date.now()-LASTACT>IDLE_AFTER,done=!!(D&&D.desa.length&&D.desa.every(d=>(d.tps||[]).length&&d.tps.every(t=>t.status==='Final')));
  const hot=Date.now()-HOTAT<HOT_FOR;
- TIMER=setTimeout(check,(RETRY?3000:idle?POLL_IDLE:hot?POLL_HOT:POLL_ACTIVE)+Math.random()*1000)}
+ TIMER=setTimeout(check,(RETRY?3000:done?POLL_DONE:idle?POLL_IDLE:hot?POLL_HOT:POLL_ACTIVE)+Math.random()*3000)}
 const load=()=>check(true);
 function showErr(){setLive('off','Gagal memuat data');if($('grid').querySelector('.card'))return;
  const b=el('button','btn','Coba lagi');b.type='button';b.onclick=load;

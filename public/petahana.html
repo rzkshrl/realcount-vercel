@@ -460,7 +460,7 @@ async function refresh(){try{const v=await getJSON('/api/rev'),m=Number(v.rev||v
  if(LIVE&&Number(LIVE.rev||LIVE.last||0)===m)return;LIVE=await getJSON('/api/data');render()}catch(e){}}
 (async()=>{LIVE=store.get('qc-cache',null);
  try{P=await getJSON('/data/petahana.json');$('src').textContent=P.sumber}catch(e){$('grid').replaceChildren(el('p','empty','Data petahana belum bisa dimuat. Periksa sinyal internet, lalu muat ulang halaman.'));return}
- render();refresh();setInterval(()=>{if(!document.hidden)refresh()},30000);
+ render();refresh();setInterval(()=>{if(!document.hidden)refresh()},300000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()})})();
 </script>
 </body>

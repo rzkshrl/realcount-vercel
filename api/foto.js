@@ -6,7 +6,7 @@ module.exports = async (req, res) => {
     const r = await fetch('https://drive.google.com/thumbnail?id=' + id + '&sz=' + (req.query.big ? 'w640' : 'w300'), { redirect: 'follow' });
     if (!r.ok) return res.status(404).end();
     res.setHeader('Content-Type', r.headers.get('content-type') || 'image/jpeg');
-    res.setHeader('Cache-Control', 'public, s-maxage=86400, max-age=3600, stale-while-revalidate=604800');
+    res.setHeader('Cache-Control', 'public, max-age=2592000, s-maxage=2592000, immutable');   // foto baru = ID Drive baru, jadi aman di-cache lama di browser
     res.status(200).send(Buffer.from(await r.arrayBuffer()));
   } catch (e) { res.status(502).end(); }
 };
