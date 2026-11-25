@@ -259,6 +259,11 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
  footer{padding-bottom:calc(140px + env(safe-area-inset-bottom))}
 }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.pnav{display:inline-flex;gap:4px;margin:var(--s5) auto 0;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:99px;box-shadow:0 4px 14px rgba(42,41,53,.06)}
+.pnav a{display:inline-flex;align-items:center;min-height:44px;padding:0 var(--s5);border-radius:99px;font-weight:700;font-size:15px;color:var(--ink);text-decoration:none;transition:background .15s,color .15s}
+.pnav a:hover{background:var(--redT)}
+.pnav a[aria-current=page]{background:var(--red);color:#fff}
+.pnav+.live{margin-top:var(--s3)}
 </style>
 </head>
 <body>
@@ -293,6 +298,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
  <div class="wrap">
   <h1 class="in d2">Quick Count Pilkades Serentak<span>Kabupaten Wonogiri</span></h1>
   <div class="year in">Tahun 2026</div>
+  <nav class="pnav in d3" aria-label="Halaman"><a href="/" aria-current="page">Quick Count</a><a href="/petahana">Petahana</a></nav>
   <div class="live busy in d4" id="live" role="status" aria-live="polite"><span class="dot"></span><span id="lt">Memuat data...</span><span class="ckt" id="cktime"></span><button class="rf" id="rf" type="button">Perbarui</button></div>
  </div>
 </header>

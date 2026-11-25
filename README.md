@@ -87,3 +87,13 @@ Alur baru:
 
 Operator lupa sandi: kabupaten > Akun desa > Reset sandi (sandi baru tampil sekali, perangkat lama otomatis keluar).
 Desa baru: tambah calon di "Calon dan foto" (3 TPS dibuat otomatis), lalu Akun desa > "Buat akun untuk desa baru".
+
+
+## Halaman Petahana (/petahana)
+- Halaman publik terpisah: ringkasan petahana menang/kalah, per kecamatan, daftar petahana (saring Menang/Kalah/Belum ada hasil), dan desa tanpa petahana.
+- Pindah halaman lewat tombol "Quick Count | Petahana" di bagian atas kedua halaman.
+- Menang/kalah diambil dari `public/data/petahana.json`, hasil konversi berkas HASIL PILKADES 2026 - PETAHANA.xlsx
+  (hanya nama, desa, kecamatan, nomor urut, status petahana/mengundurkan diri, dan hasil; TTL, alamat, dan nomor suket TIDAK ikut).
+- Foto dan angka suara di kartu diambil langsung dari quick count (ditandai "quick count"), dicocokkan per kecamatan + desa.
+  Untuk petahana yang hasilnya belum ada, kartu menampilkan posisi sementara quick count (unggul/tertinggal).
+- Memperbarui hasil: ganti isi `public/data/petahana.json` (kolom "h": "MENANG" atau "KALAH" pada baris petahana), lalu push ke Vercel.
