@@ -377,6 +377,9 @@ const $=id=>document.getElementById(id),el=(t,c,x)=>{const e=document.createElem
 const nf=n=>n==null?'-':Number(n).toLocaleString('id-ID'),pf=n=>n.toLocaleString('id-ID',{minimumFractionDigits:1,maximumFractionDigits:1})+'%';
 function proper(s){s=String(s||'').trim().replace(/\s+/g,' ');if(!s)return s;const i=s.indexOf(','),main=i<0?s:s.slice(0,i),deg=i<0?'':s.slice(i);
  return main.toLocaleLowerCase('id-ID').replace(/(^|[\s.\-(\/])(\p{L})/gu,(m,a,b)=>a+b.toLocaleUpperCase('id-ID'))+deg}
+/* nama hampir sama (beda ejaan 1-2 huruf), mis. MANFAATO / MANFAAT */
+function near(a,b){if(!a||!b||Math.abs(a.length-b.length)>2||Math.min(a.length,b.length)<5)return false;
+ let p=Array.from({length:b.length+1},(_,i)=>i);for(let i=1;i<=a.length;i++){const q=[i];for(let j=1;j<=b.length;j++)q[j]=Math.min(p[j]+1,q[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=q}return p[b.length]<=2}
 const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,''),nkey=s=>norm(String(s||'').split(',')[0]);
 const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}};
@@ -387,7 +390,7 @@ let P=null,LIVE=null,FS='',FIRST=true;
 /* gabungkan rekap petahana dengan data quick count (foto dan suara) */
 function liveDesa(x){return LIVE&&Array.isArray(LIVE.desa)?LIVE.desa.find(d=>norm(d.kecamatan)===norm(x.k)&&norm(d.desa)===norm(x.d)):null}
 function rows(){return P.desa.filter(x=>x.c.some(c=>c.p)).map(x=>{const inc=x.c.find(c=>c.p),ld=liveDesa(x);
- let li=null;if(ld)li=ld.calon.find(c=>c.petahana)||ld.calon.find(c=>nkey(c.nama)===nkey(inc.nama))||ld.calon.find(c=>String(c.nomor_urut)===String(inc.no));
+ let li=null;if(ld)li=ld.calon.find(c=>nkey(c.nama)===nkey(inc.nama))||ld.calon.find(c=>near(nkey(c.nama),nkey(inc.nama)));   // cocokkan nama saja: lebih baik kosong daripada orang yang salah
  const h=inc.h||'';return{x,inc,ld,li,h,res:RES[h]?h:''}})}
 function qc(r){const ld=r.ld;if(!ld||!r.li)return null;const vs=ld.calon.map(c=>c.suara||0),tot=vs.reduce((a,b)=>a+b,0);if(!tot)return null;
  const others=ld.calon.filter(c=>c!==r.li).sort((a,b)=>(b.suara||0)-(a.suara||0)),top=others[0],iv=r.li.suara||0,tv=top?top.suara||0:0;
