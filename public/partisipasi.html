@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Partisipasi Pemilih Pilkades Kabupaten Wonogiri 2026</title>
+<meta name="description" content="DPT dan partisipasi pemilih Pilkades Serentak Kabupaten Wonogiri 2026 per desa, per kecamatan dan total kabupaten.">
+<meta name="theme-color" content="#b5121b">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Partisipasi Pemilih Pilkades Kabupaten Wonogiri 2026">
+<meta property="og:description" content="137.921 pemilih di 50 desa. Partisipasi sementara dari quick count, per desa dan per kecamatan.">
+<meta property="og:image" content="/img/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="preload" href="/fonts/jakarta.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Jakarta";src:url(/fonts/jakarta.woff2) format("woff2");font-weight:200 800;font-display:swap}
+:root{color-scheme:light;
+--bg:#f1f4f5;--card:#fff;--ink:#2a2935;--mut:#5c5a68;--line:rgba(42,41,53,.13);--grid:rgba(42,41,53,.08);
+--red:#b5121b;--red2:#d71920;--redT:#fbe9ea;--gold:#d4b34a;--goldT:#fbf5e1;--tab:#8e5b6c;
+--fin:#16794a;--finT:#e2f2e9;--sem:#8a5206;--semB:#e8a33d;--semT:#fdf0d8;--belT:#e7e9ec;--track:#eceef1;
+--L:#3d4bbf;--P:#e8590c;
+--r-sm:8px;--r-lg:14px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;--s8:72px;
+--ease:cubic-bezier(.2,.7,.2,1)}
+*{box-sizing:border-box}
+html,body{margin:0}
+html{-webkit-text-size-adjust:100%}
+body{background:url(/img/bg-left.svg) left -40px top 640px/min(26vw,330px) auto repeat-y,url(/img/bg-right.svg) right -40px top 1180px/min(26vw,330px) auto repeat-y,var(--bg);color:var(--ink);font:16px/1.6 "Jakarta",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow-x:hidden}
+.wrap{max-width:1160px;margin:0 auto;padding:0 clamp(16px,5vw,48px)}
+.skip{position:absolute;left:-999px;top:8px}
+.skip:focus{left:16px;z-index:50;background:var(--ink);color:#fff;padding:var(--s2) var(--s4);border-radius:var(--r-sm)}
+:focus-visible{outline:3px solid var(--semB);outline-offset:2px}
+[hidden]{display:none!important}
+.deco{position:absolute;pointer-events:none;user-select:none;overflow:visible}
+.cloud{color:var(--red2);opacity:.32}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---------- Hero ---------- */
+.hero{position:relative;overflow:hidden;text-align:center;padding:clamp(150px,15vw,170px) 0 var(--s5)}
+.wave-tl{left:0;top:0;width:clamp(190px,32vw,440px);height:auto}
+.seal{position:absolute;left:clamp(14px,2.6vw,36px);top:clamp(12px,2vw,28px);width:clamp(46px,5.4vw,72px);height:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,.25))}
+.msb{position:absolute;right:clamp(14px,2.6vw,36px);top:clamp(16px,2.4vw,32px);width:clamp(132px,15vw,200px);height:auto}
+.hero .cloud.l{left:-60px;top:60%;width:min(300px,30vw)}
+.hero .cloud.r{right:-70px;top:30%;width:min(280px,28vw);transform:scaleX(-1)}
+h1{margin:0 auto;color:var(--red);font-weight:800;text-transform:uppercase;letter-spacing:-.01em;line-height:1.08;font-size:clamp(28px,5.2vw,56px);max-width:16ch;text-wrap:balance}
+h1 span{display:block;font-size:.72em;margin-top:.18em}
+.year{display:inline-block;margin-top:var(--s5);padding:10px clamp(28px,4vw,48px);border-radius:99px;color:#fff;font-weight:700;font-size:clamp(18px,2.2vw,26px);letter-spacing:.02em;background:linear-gradient(180deg,#e8262d,var(--red));box-shadow:0 6px 18px rgba(181,18,27,.28),inset 0 -3px 0 rgba(0,0,0,.14)}
+.pnav{display:inline-flex;gap:4px;margin:var(--s5) auto 0;padding:4px;background:var(--card);border:1px solid var(--line);border-radius:99px;box-shadow:0 4px 14px rgba(42,41,53,.06);max-width:100%;overflow-x:auto}
+.pnav a{display:inline-flex;align-items:center;min-height:44px;padding:0 var(--s5);border-radius:99px;font-weight:700;font-size:15px;color:var(--ink);text-decoration:none;white-space:nowrap;transition:background .15s,color .15s}
+.pnav a:hover{background:var(--redT)}
+.pnav a[aria-current=page]{background:var(--red);color:#fff}
+.in{animation:rise .7s var(--ease) both}
+.in.d1{animation-delay:.08s}.in.d2{animation-delay:.18s}.in.d3{animation-delay:.3s}.in.d4{animation-delay:.42s}
+.wave-tl.in{animation:corner .9s var(--ease) both}
+.year.in{animation:pop .55s var(--ease) .3s both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}}
+@keyframes corner{from{opacity:0;transform:translate(-40px,-40px)}}
+@keyframes pop{from{opacity:0;transform:scale(.92)}}
+
+/* ---------- Panels ---------- */
+main{position:relative;overflow-x:clip}
+.panel{position:relative;margin-top:var(--s7);background:var(--card);border:2px solid var(--gold);padding:var(--s7) clamp(16px,3vw,var(--s6)) var(--s6)}
+.panel>h2{position:absolute;left:50%;top:0;transform:translate(-50%,-55%);margin:0;padding:4px var(--s5);background:var(--tab);color:#fff;font-size:clamp(17px,2vw,21px);line-height:1.35;font-weight:700;white-space:nowrap;max-width:calc(100% - 24px);overflow:hidden;text-overflow:ellipsis}
+.panel>.sub{margin:0 auto var(--s5);max-width:64ch;text-align:center;color:var(--mut)}
+.notice{margin-top:var(--s5);border-color:var(--semB);background:var(--semT);padding-top:var(--s6)}
+.notice>h2{background:var(--sem)}
+.notice p{margin:0 auto;max-width:78ch;text-align:center}
+.upd{margin:var(--s3) auto 0;text-align:center;font-size:13px;font-weight:600;color:var(--mut)}.upd.bad{color:var(--red)}
+
+/* ---------- Ringkasan ---------- */
+.sum{display:grid;grid-template-columns:minmax(240px,320px) 1fr;gap:var(--s6);align-items:center}
+.gauge{position:relative;width:100%;max-width:300px;margin:0 auto}
+.gauge svg{display:block;width:100%;height:auto}
+.gauge .trk{stroke:var(--track)}
+.gauge .arc{stroke:var(--red);transition:stroke-dashoffset 1s var(--ease)}
+.gauge .fin{stroke:var(--fin);transition:stroke-dashoffset 1s var(--ease)}
+.gv{position:absolute;left:0;right:0;bottom:6%;text-align:center}
+.gv b{display:block;font-size:clamp(40px,6vw,56px);line-height:1;font-weight:800;letter-spacing:-.03em}
+.gv span{display:block;margin-top:6px;font-size:14px;font-weight:600;color:var(--mut)}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s3)}
+.kpi{border:1px solid var(--line);border-radius:var(--r-sm);padding:var(--s3) var(--s4);background:var(--card)}
+.kpi span{display:block;font-size:14px;font-weight:600;color:var(--mut)}
+.kpi b{display:block;font-size:clamp(24px,3vw,32px);line-height:1.2;letter-spacing:-.02em;font-weight:800}
+.kpi small{display:block;font-size:13px;color:var(--mut)}
+.lp{grid-column:1/-1;margin-top:var(--s2)}
+.lp p{display:flex;justify-content:space-between;gap:var(--s3);margin:0 0 6px;font-size:14px;font-weight:600;color:var(--mut)}
+.stk{display:flex;gap:2px;height:16px}
+.stk i{display:block;height:100%;transition:flex-grow .6s var(--ease)}
+.stk i:first-child{border-radius:4px 0 0 4px}.stk i:last-child{border-radius:0 4px 4px 0}
+.lg{display:flex;flex-wrap:wrap;gap:var(--s2) var(--s5);margin:var(--s3) 0 0;padding:0;list-style:none;font-size:14px;font-weight:600;color:var(--mut)}
+.lg li{display:flex;align-items:center}
+.lg li::before{content:"";flex:none;width:10px;height:10px;margin-right:var(--s2);border-radius:3px;background:var(--c)}
+.lg li.ln::before{width:2px;height:14px;border-radius:0;background:var(--ink)}
+.lg b{color:var(--ink);margin-left:4px}
+
+/* ---------- Bar chart (horizontal) ---------- */
+.ctl{display:flex;flex-wrap:wrap;align-items:flex-end;gap:var(--s3) var(--s4);margin-bottom:var(--s4)}
+.ctl label{display:grid;gap:4px;font-size:14px;font-weight:600;color:var(--mut)}
+select,input{min-height:46px;border:1px solid rgba(42,41,53,.24);border-radius:var(--r-sm);font:inherit;font-size:16px;color:var(--ink);background:var(--card);padding:0 var(--s4)}
+select{padding-right:var(--s6)}
+.seg2{display:inline-flex;padding:3px;border:1px solid var(--line);border-radius:99px;background:var(--bg)}
+.seg2 button{min-height:40px;padding:0 var(--s4);border:0;border-radius:99px;background:none;font:inherit;font-size:14px;font-weight:700;color:var(--mut);cursor:pointer;transition:background .15s,color .15s}
+.seg2 button[aria-pressed=true]{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(42,41,53,.14)}
+.seg2 button:hover{color:var(--ink)}
+.ctl .grow{flex:1}
+.bars{position:relative;margin:0;padding:0;list-style:none}
+.axis,.br{display:grid;grid-template-columns:minmax(110px,190px) 1fr 132px;gap:var(--s3);align-items:center}
+.axis{margin-bottom:4px;font-size:12px;font-weight:600;color:var(--mut)}
+.ticks{position:relative;height:18px}
+.ticks span{position:absolute;white-space:nowrap;transform:translateX(-50%);font-variant-numeric:tabular-nums}
+.ticks span:first-child{transform:none}.ticks span:last-child{transform:translateX(-100%)}
+.br{position:relative;min-height:36px;padding:2px 0;border-radius:6px;cursor:default;outline-offset:0}
+.br:hover,.br:focus-visible,.br.on{background:var(--goldT)}
+.br .nm{font-size:14px;font-weight:600;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.br .nm small{display:block;font-size:12px;font-weight:500;color:var(--mut)}
+.plot{position:relative;height:22px;background:repeating-linear-gradient(90deg,var(--grid) 0 1px,transparent 1px 20%)}
+.plot::after{content:"";position:absolute;right:0;top:0;bottom:0;width:1px;background:var(--grid)}
+.plot .b{position:absolute;left:0;top:3px;bottom:3px;width:0;background:var(--red);border-radius:0 4px 4px 0;transition:width .7s var(--ease)}
+.plot .b.ps{background:repeating-linear-gradient(135deg,var(--red) 0 5px,#d9636a 5px 8px)}
+.plot .b.none{display:none}
+.plot .avg{position:absolute;top:-4px;bottom:-4px;width:2px;margin-left:-1px;background:var(--ink);z-index:1;transition:left .7s var(--ease)}
+.br .v{font-size:14px;font-weight:700;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.br .v small{display:block;font-size:12px;font-weight:500;color:var(--mut)}
+.br .v.no{font-weight:600;color:var(--mut)}
+/* stacked L/P */
+.plot.cmp{background:repeating-linear-gradient(90deg,var(--grid) 0 1px,transparent 1px 20%)}
+.plot.cmp .s{position:absolute;top:3px;bottom:3px;display:flex;gap:2px;left:0;width:0;transition:width .7s var(--ease)}
+.plot.cmp .s i{display:block;height:100%}
+.plot.cmp .s i:first-child{background:var(--L)}
+.plot.cmp .s i:last-child{background:var(--P);border-radius:0 4px 4px 0}
+.chart{border:1px solid var(--line);border-radius:var(--r-lg);padding:var(--s5)}
+.chart+.chart{margin-top:var(--s5)}
+.chart h3{margin:0 0 4px;font-size:18px;line-height:1.3;font-weight:700}
+.chart>p{margin:0 0 var(--s4);font-size:14px;color:var(--mut)}
+.note{margin:var(--s4) 0 0;font-size:13px;color:var(--mut)}
+
+/* tooltip */
+.tip{position:fixed;z-index:80;left:0;top:0;min-width:200px;max-width:260px;padding:var(--s3) var(--s4);border-radius:var(--r-sm);background:var(--ink);color:#fff;font-size:13px;line-height:1.5;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .12s,transform .12s;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.tip.on{opacity:1;transform:none}
+.tip b{display:block;font-size:14px;margin-bottom:4px}
+.tip dl{display:grid;grid-template-columns:1fr auto;gap:2px var(--s3);margin:0}
+.tip dt{color:rgba(255,255,255,.72)}.tip dd{margin:0;text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* table */
+.tbl{margin-top:var(--s5);border-top:1px solid var(--line);padding-top:var(--s2)}
+.tbl summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;font-weight:700;list-style:none}
+.tbl summary::-webkit-details-marker{display:none}
+.tbl summary::after{content:"";width:9px;height:9px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);transition:transform .2s var(--ease);margin-right:6px}
+.tbl[open] summary::after{transform:rotate(-135deg)}
+.tbl summary:hover{color:var(--red)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:8px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:nth-child(-n+2),td:nth-child(-n+2){text-align:left}
+th{font-size:13px;color:var(--mut);font-weight:700;position:sticky;top:0;background:var(--card)}
+tfoot td{font-weight:800;border-top:2px solid var(--ink)}
+.chip{display:inline-block;border-radius:99px;padding:0 10px;font-size:12px;font-weight:700;background:var(--belT);color:var(--mut)}
+.chip.Final{background:var(--finT);color:var(--fin)}.chip.Sementara{background:var(--semT);color:var(--sem)}
+.sk{position:relative;overflow:hidden;background:rgba(42,41,53,.07);border-radius:var(--r-sm)}
+.sk::after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.75),transparent);animation:shim 1.3s ease-in-out infinite}
+@keyframes shim{to{transform:translateX(100%)}}
+.tp{position:fixed;left:0;right:0;top:0;z-index:70;height:3px;overflow:hidden;pointer-events:none;opacity:0;transition:opacity .25s}
+.tp.on{opacity:1}
+.tp i{position:absolute;top:0;bottom:0;left:0;width:40%;background:linear-gradient(90deg,var(--gold),var(--red2),var(--gold));animation:tpm 1.1s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes tpm{0%{transform:translateX(-100%) scaleX(.6)}60%{transform:translateX(120%) scaleX(1)}100%{transform:translateX(260%) scaleX(.6)}}
+
+/* ---------- Footer ---------- */
+footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 0 calc(var(--s7) + env(safe-area-inset-bottom));background:var(--bg);border-top:4px solid var(--red)}
+.wave-br{right:0;bottom:0;width:clamp(220px,32vw,440px);height:auto;transform:rotate(180deg)}
+.fi{position:relative;display:grid;grid-template-columns:auto 1fr;gap:var(--s5);align-items:center;max-width:720px}
+.fi img{width:56px;height:auto}
+.fi p{margin:0;color:var(--mut);font-size:14px}
+.fi b{display:block;color:var(--ink);font-size:16px}
+.fi .msbf{grid-column:1/-1;width:min(280px,70%);margin-top:var(--s3)}
+
+@media (max-width:860px){.hero .cloud{opacity:.2}.hero .cloud.l{top:auto;bottom:6%}.sum{grid-template-columns:1fr}}
+@media (max-width:640px){
+ body{background-size:150px auto,150px auto;background-position:left -50px top 520px,right -50px top 900px,0 0}
+ .hero{padding-top:150px}
+ .panel{padding:var(--s6) 12px var(--s5)}
+ .chart{padding:var(--s4) 12px}
+ .kpis{grid-template-columns:1fr 1fr}
+ .br{grid-template-columns:1fr auto;grid-template-areas:"nm v" "pl pl";gap:2px var(--s3);padding:6px 4px}
+ .br .nm{grid-area:nm}.br .v{grid-area:v}.br .plot{grid-area:pl}
+ .br .nm small,.br .v small{display:inline;margin-left:6px}
+ .axis{grid-template-columns:1fr;padding:0 4px}.axis>span{display:none}
+ .ctl>*{flex:1 1 100%}
+ .ctl select{width:100%}
+ .seg2{display:flex}.seg2 button{flex:1}
+ .wave-br{width:150px}
+ footer{padding-bottom:calc(140px + env(safe-area-inset-bottom))}
+}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media (forced-colors:active){.plot .b,.plot.cmp .s i{background:CanvasText}}
+.pnav{max-width:100%}@media (max-width:480px){.pnav a{padding:0 14px;font-size:14px}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Lewati ke konten</a>
+<div class="tp" id="tp" aria-hidden="true"><i></i></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <symbol id="wave" viewBox="0 0 540 360" overflow="visible">
+   <path fill="#a80f17" d="M0 0H500C440 30 395 62 352 118C305 180 270 168 214 206C150 250 104 236 52 300L0 352Z"/>
+   <path fill="none" stroke="#fff" stroke-width="26" stroke-linecap="round" d="M524 6C458 44 412 78 368 136C320 198 282 186 228 226C166 272 118 258 66 322L30 362"/>
+   <path fill="none" stroke="#e0242c" stroke-width="16" stroke-linecap="round" d="M560 18C492 64 446 98 402 156C354 218 314 210 262 248C204 292 152 284 104 344L84 372"/>
+  </symbol>
+  <symbol id="mendung" viewBox="0 0 320 200">
+   <g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M22 168C0 168 2 136 28 132C12 110 34 84 60 94C60 62 102 50 118 78C128 46 176 40 188 72C210 56 242 66 238 98C270 92 292 114 276 136C306 140 320 158 306 168Z"/>
+    <path d="M52 168C36 168 38 146 56 143C46 128 62 112 80 118C80 96 110 88 120 108C128 86 162 82 170 104C186 92 208 100 204 122C226 118 242 134 230 150C252 152 262 162 252 168"/>
+    <path d="M86 168C76 168 78 156 90 154C84 144 96 136 106 140C108 126 128 122 134 136C140 122 160 120 166 134C178 128 190 136 186 148C200 148 208 160 200 168"/>
+    <path d="M22 168C10 168 6 156 14 150C22 144 32 150 30 158C28 164 20 162 20 158"/>
+    <path d="M276 136C292 126 304 108 296 94C290 84 276 88 278 98C280 104 288 104 288 98"/><path d="M60 94C46 80 52 60 68 58C80 57 84 70 76 74C70 77 66 72 68 68"/><path d="M188 72C196 52 218 46 230 56C238 64 230 74 222 70"/><circle cx="306" cy="78" r="7"/><circle cx="18" cy="104" r="5"/><circle cx="246" cy="44" r="6"/>
+   </g>
+  </symbol>
+ </defs>
+</svg>
+
+<header class="hero">
+ <svg class="deco wave-tl in" viewBox="0 0 540 360" aria-hidden="true"><use href="#wave"/></svg>
+ <img class="seal in d1" src="/img/seal.webp" width="103" height="128" alt="Lambang Kabupaten Wonogiri">
+ <img class="msb in d2" src="/img/msb.webp" width="540" height="239" alt="Wonogiri Maju Sejahtera Berkelanjutan" fetchpriority="high">
+ <svg class="deco cloud l" viewBox="0 0 320 200" aria-hidden="true"><use href="#mendung"/></svg>
+ <svg class="deco cloud r" viewBox="0 0 320 200" aria-hidden="true"><use href="#mendung"/></svg>
+ <div class="wrap">
+  <h1 class="in d2">Partisipasi Pemilih Pilkades<span>Kabupaten Wonogiri</span></h1>
+  <div class="year in">Tahun 2026</div>
+  <nav class="pnav in d4" aria-label="Halaman"><a href="/">Quick Count</a><a href="/petahana">Petahana</a><a href="/partisipasi" aria-current="page">Partisipasi</a></nav>
+ </div>
+</header>
+
+<main id="main">
+ <div class="wrap">
+  <section class="panel notice" aria-labelledby="h-not">
+   <h2 id="h-not">Cara membaca</h2>
+   <p>Partisipasi = <b>suara sah masuk quick count ÷ DPT</b>. Selama TPS belum lengkap, angkanya masih naik; batang bergaris berarti desa itu belum Final. Suara tidak sah belum dihitung, jadi partisipasi sebenarnya sedikit lebih tinggi. Quick count <b>bukan hasil resmi</b>.</p>
+   <p class="upd" id="upd" aria-live="polite"></p>
+  </section>
+
+  <section class="panel" aria-labelledby="h-sum">
+   <h2 id="h-sum">Total Kabupaten</h2>
+   <div class="sum">
+    <div class="gauge" id="gauge" role="img" aria-label="Partisipasi total">
+     <svg viewBox="0 0 200 116" aria-hidden="true">
+      <path class="trk" d="M16 104A84 84 0 0 1 184 104" fill="none" stroke-width="18" stroke-linecap="round"/>
+      <path class="arc" id="garc" d="M16 104A84 84 0 0 1 184 104" fill="none" stroke-width="18" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+     </svg>
+     <div class="gv"><b class="num" id="gp">–</b><span>partisipasi sementara</span></div>
+    </div>
+    <div class="kpis" id="kpis">
+     <div class="sk" style="height:84px"></div><div class="sk" style="height:84px"></div><div class="sk" style="height:84px"></div><div class="sk" style="height:84px"></div>
+    </div>
+   </div>
+  </section>
+
+  <section class="panel" aria-labelledby="h-kec">
+   <h2 id="h-kec">Per Kecamatan</h2>
+   <p class="sub">18 kecamatan yang menggelar Pilkades. Arahkan kursor atau ketuk batang untuk rinciannya.</p>
+   <div class="chart">
+    <div class="ctl">
+     <div class="grow"><h3>Partisipasi per kecamatan</h3></div>
+     <div class="seg2" role="group" aria-label="Urutkan kecamatan" id="ksort">
+      <button type="button" data-s="p" aria-pressed="true">Partisipasi</button><button type="button" data-s="t" aria-pressed="false">DPT</button><button type="button" data-s="n" aria-pressed="false">Nama</button>
+     </div>
+    </div>
+    <ul class="lg" id="klg" style="margin:0 0 var(--s4)"></ul>
+    <div class="axis" aria-hidden="true"><span></span><div class="ticks" id="kax"></div><span></span></div>
+    <ul class="bars" id="kbars"></ul>
+   </div>
+   <div class="chart">
+    <h3>Komposisi DPT per kecamatan</h3>
+    <p>Jumlah pemilih laki-laki dan perempuan, urut dari DPT terbesar.</p>
+    <ul class="lg" style="margin:0 0 var(--s4)"><li style="--c:var(--L)">Laki-laki</li><li style="--c:var(--P)">Perempuan</li></ul>
+    <div class="axis" aria-hidden="true"><span></span><div class="ticks" id="cax"></div><span></span></div>
+    <ul class="bars" id="cbars"></ul>
+   </div>
+  </section>
+
+  <section class="panel" id="desa" aria-labelledby="h-desa">
+   <h2 id="h-desa">Per Desa</h2>
+   <p class="sub">50 desa. Pilih kecamatan untuk mempersempit.</p>
+   <div class="chart">
+    <div class="ctl">
+     <label>Kecamatan<select id="fk"><option value="">Semua kecamatan</option></select></label>
+     <div class="grow"></div>
+     <div class="seg2" role="group" aria-label="Urutkan desa" id="dsort">
+      <button type="button" data-s="p" aria-pressed="true">Partisipasi</button><button type="button" data-s="t" aria-pressed="false">DPT</button><button type="button" data-s="n" aria-pressed="false">Nama</button>
+     </div>
+    </div>
+    <ul class="lg" id="dlg" style="margin:0 0 var(--s4)"></ul>
+    <div class="axis" aria-hidden="true"><span></span><div class="ticks" id="dax"></div><span></span></div>
+    <ul class="bars" id="dbars"></ul>
+    <details class="tbl">
+     <summary>Lihat sebagai tabel</summary>
+     <div class="tw"><table>
+      <thead><tr><th scope="col">Desa</th><th scope="col">Kecamatan</th><th scope="col">DPT L</th><th scope="col">DPT P</th><th scope="col">DPT</th><th scope="col">Suara sah</th><th scope="col">Partisipasi</th><th scope="col">Status</th></tr></thead>
+      <tbody id="tb"></tbody><tfoot id="tf"></tfoot>
+     </table></div>
+    </details>
+   </div>
+  </section>
+ </div>
+</main>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<footer>
+ <svg class="deco wave-br" viewBox="0 0 540 360" aria-hidden="true"><use href="#wave"/></svg>
+ <div class="wrap"><div class="fi">
+  <img src="/img/seal.webp" width="103" height="128" alt="" loading="lazy">
+  <p><b>Partisipasi Pemilih Pilkades Serentak Kabupaten Wonogiri 2026</b><span id="src">Data DPT Pilkades Serentak 2026</span>. Suara sah dari quick count sementara, bukan hasil resmi.</p>
+  <img class="msbf" src="/img/msb.webp" width="540" height="239" alt="Wonogiri Maju Sejahtera Berkelanjutan" loading="lazy">
+ </div></div>
+</footer>
+<noscript><p class="wrap" style="padding:16px 0">Aktifkan JavaScript pada peramban Anda untuk melihat grafik partisipasi.</p></noscript>
+<script>
+const $=id=>document.getElementById(id),el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const nf=n=>n==null?'–':Number(n).toLocaleString('id-ID'),pf=(n,d=1)=>n==null||!isFinite(n)?'–':n.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d})+'%';
+function proper(s){return String(s||'').trim().toLocaleLowerCase('id-ID').replace(/(^|[\s.\-(\/])(\p{L})/gu,(m,a,b)=>a+b.toLocaleUpperCase('id-ID'))}
+const norm=s=>String(s||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+const RM=matchMedia('(prefers-reduced-motion:reduce)').matches;
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}};
+const getJSON=u=>{const c=new AbortController(),t=setTimeout(()=>c.abort(),12000);return fetch(u,{cache:'no-store',signal:c.signal}).then(r=>{if(!r.ok)throw 0;return r.json()}).finally(()=>clearTimeout(t))};
+let D=null,LIVE=null,FIRST=true,KS='p',DS='p';
+
+/* gabungkan DPT dengan suara sah quick count; kunci = kecamatan + desa (ada dua desa Jatirejo) */
+function model(){const idx={};if(LIVE&&Array.isArray(LIVE.desa))LIVE.desa.forEach(d=>idx[norm(d.kecamatan)+'|'+norm(d.desa)]=d);
+ const V=D.desa.map(x=>{const ld=idx[norm(x.k)+'|'+norm(x.d)];let v=null,st=null,sent=0,tn=0;
+  if(ld){const tps=ld.tps||[];tn=tps.length;sent=tps.filter(t=>t.status&&t.status!=='Belum masuk').length;
+   v=(ld.calon||[]).reduce((a,c)=>a+(Number(c.suara)||0),0);st=ld.status||'Belum masuk'}
+  return{k:x.k,d:x.d,l:x.l,p:x.p,t:x.t,v,st,sent,tn,qc:!!ld,pr:v!=null&&x.t&&(v>0||sent>0)?v/x.t*100:null}});
+ const K={};V.forEach(r=>{const o=K[r.k]=K[r.k]||{k:r.k,l:0,p:0,t:0,v:0,n:0,fin:0,sent:0,tn:0,qc:0};o.l+=r.l;o.p+=r.p;o.t+=r.t;o.n++;
+  if(r.qc){o.qc++;o.v+=r.v||0;o.sent+=r.sent;o.tn+=r.tn;if(r.st==='Final')o.fin++}});
+ Object.values(K).forEach(o=>{o.pr=o.t&&(o.v>0||o.sent>0)?o.v/o.t*100:null;o.st=o.fin===o.n?'Final':o.v>0?'Sementara':'Belum masuk'});
+ const T={l:0,p:0,t:0,v:0,fin:0,ft:0,fv:0,sent:0,tn:0};V.forEach(r=>{T.l+=r.l;T.p+=r.p;T.t+=r.t;T.v+=r.v||0;T.sent+=r.sent;T.tn+=r.tn;if(r.st==='Final'){T.fin++;T.ft+=r.t;T.fv+=r.v}});
+ T.pr=T.t?T.v/T.t*100:0;T.fpr=T.ft?T.fv/T.ft*100:null;return{V,K:Object.values(K),T}}
+
+/* skala sumbu: 0..max dibulatkan ke 20/50/100 */
+function scaleMax(m,step){return Math.max(step,Math.ceil(m/step)*step)}
+function ticks(node,max,fmt){node.replaceChildren(...[0,.2,.4,.6,.8,1].map(f=>{const s=el('span',null,fmt(max*f));s.style.left=f*100+'%';return s}))}
+
+/* tooltip bersama */
+const tip=$('tip');let tipFor=null;
+function showTip(row,x,y){tipFor=row;tip.replaceChildren(el('b',null,row._t));const dl=el('dl');row._rows.forEach(([a,b])=>dl.append(el('dt',null,a),el('dd',null,b)));tip.append(dl);
+ tip.classList.add('on');const r=tip.getBoundingClientRect();let L=x+14,Tp=y+14;if(L+r.width>innerWidth-8)L=x-r.width-14;if(Tp+r.height>innerHeight-8)Tp=y-r.height-14;tip.style.left=Math.max(8,L)+'px';tip.style.top=Math.max(8,Tp)+'px';
+ document.querySelectorAll('.br.on').forEach(e=>e!==row&&e.classList.remove('on'));row.classList.add('on')}
+function hideTip(){tip.classList.remove('on');if(tipFor)tipFor.classList.remove('on');tipFor=null}
+function bindTip(row){row.tabIndex=0;row.addEventListener('pointermove',e=>{if(e.pointerType==='mouse')showTip(row,e.clientX,e.clientY)});
+ row.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse')hideTip()});
+ row.addEventListener('click',e=>{if(tipFor===row&&e.pointerType!=='mouse'){hideTip();return}const b=row.getBoundingClientRect();showTip(row,e.clientX||b.left+b.width/2,e.clientY||b.top+b.height/2)});
+ row.addEventListener('focus',()=>{const b=row.getBoundingClientRect();showTip(row,b.left+b.width*.55,b.bottom-6)});row.addEventListener('blur',hideTip)}
+document.addEventListener('pointerdown',e=>{if(tipFor&&!e.target.closest('.br'))hideTip()});addEventListener('scroll',()=>{if(tipFor&&document.activeElement!==tipFor)hideTip()},{passive:true});
+
+/* satu baris batang partisipasi */
+function pbar(r,max,avg,name,sub,rows){const li=el('li','br'),nm=el('div','nm',name);if(sub)nm.append(el('small',null,sub));
+ const plot=el('div','plot'),b=el('i','b'+(r.st==='Final'?'':' ps')+(r.pr==null?' none':''));plot.append(b);
+ const w=r.pr==null?0:Math.min(100,r.pr/max*100);if(FIRST&&!RM)requestAnimationFrame(()=>requestAnimationFrame(()=>b.style.width=w+'%'));else b.style.width=w+'%';
+ if(avg!=null){const a=el('i','avg');a.style.left=Math.min(100,avg/max*100)+'%';plot.append(a)}
+ const v=el('div','v'+(r.pr==null?' no':''),r.pr==null?'–':pf(r.pr));v.append(el('small',null,'DPT '+nf(r.t)));
+ li.append(nm,plot,v);li._t=name+(sub?' · '+sub:'');li._rows=rows;li.setAttribute('aria-label',li._t+': partisipasi '+(r.pr==null?'belum ada data':pf(r.pr))+', DPT '+nf(r.t));bindTip(li);return li}
+
+function sorter(s){return s==='t'?(a,b)=>b.t-a.t:s==='n'?(a,b)=>(a.k+a.d).localeCompare(b.k+b.d,'id'):(a,b)=>((b.pr==null?-1:b.pr)-(a.pr==null?-1:a.pr))||b.t-a.t}
+function stLabel(st){return st==='Final'?'Final':st==='Sementara'?'Sementara':'Belum masuk'}
+
+function render(){if(!D)return;const {V,K,T}=model();
+ // ringkasan
+ $('gp').textContent=pf(T.pr);$('garc').style.strokeDashoffset=100-Math.min(100,T.pr);
+ $('gauge').setAttribute('aria-label','Partisipasi total sementara '+pf(T.pr)+' dari DPT');
+ const kp=[['Total DPT',nf(T.t),'50 desa di 18 kecamatan'],['Suara sah masuk',nf(T.v),T.tn?T.sent+' dari '+T.tn+' TPS mengirim':'menunggu data'],
+  ['Partisipasi desa Final',T.fpr==null?'–':pf(T.fpr),T.fin+' desa sudah Final'],['Belum memilih / belum masuk',nf(Math.max(0,T.t-T.v)),pf(Math.max(0,100-T.pr))+' dari DPT']];
+ const lp=el('div','lp'),p=el('p');p.append(el('span',null,'Komposisi DPT'),el('span',null,nf(T.t)+' pemilih'));const st=el('div','stk');
+ [[T.l,'var(--L)'],[T.p,'var(--P)']].forEach(([v,c])=>{const i=el('i');i.style.flexGrow=v;i.style.background=c;st.append(i)});
+ const lg=el('ul','lg');[['Laki-laki',T.l,'var(--L)'],['Perempuan',T.p,'var(--P)']].forEach(([l,v,c])=>{const li=el('li',null,l);li.append(el('b',null,nf(v)+' ('+pf(v/T.t*100)+')'));li.style.setProperty('--c',c);lg.append(li)});
+ lp.append(p,st,lg);
+ $('kpis').replaceChildren(...kp.map(([l,v,s])=>{const k=el('div','kpi');k.append(el('span',null,l),el('b','num',v),el('small',null,s));return k}),lp);
+ // legenda partisipasi
+ const plg=()=>{const u=el('ul','lg');u.style.margin='0 0 var(--s4)';const a=el('li',null,'Final');a.style.setProperty('--c','var(--red)');
+  const b=el('li',null,'Sementara (bergaris)');b.style.setProperty('--c','repeating-linear-gradient(135deg,var(--red) 0 3px,#d9636a 3px 5px)');
+  const c=el('li','ln',null);c.append(document.createTextNode('Rata-rata kabupaten'));const cb=el('b',null,pf(T.pr));c.append(cb);u.append(a,b,c);return u};
+ // kecamatan
+ const kmax=scaleMax(Math.max(T.pr,...K.map(o=>o.pr||0)),20);ticks($('kax'),kmax,v=>Math.round(v)+'%');
+ $('klg').replaceWith(Object.assign(plg(),{id:'klg'}));
+ $('kbars').replaceChildren(...K.slice().sort(sorter(KS)).map(o=>pbar(o,kmax,T.pr,proper(o.k),o.n+' desa',[
+  ['DPT',nf(o.t)],['Laki-laki / Perempuan',nf(o.l)+' / '+nf(o.p)],['Suara sah masuk',nf(o.v)],['Partisipasi',pf(o.pr)],['TPS mengirim',o.sent+' / '+o.tn],['Desa Final',o.fin+' / '+o.n]])));
+ // komposisi
+ const cmax=scaleMax(Math.max(...K.map(o=>o.t)),5000);ticks($('cax'),cmax,v=>v>=1000?nf(Math.round(v/1000))+' rb':nf(v));
+ $('cbars').replaceChildren(...K.slice().sort((a,b)=>b.t-a.t).map(o=>{const li=el('li','br');li.append(el('div','nm',proper(o.k)));
+  const plot=el('div','plot cmp'),s=el('span','s'),a=el('i'),b=el('i');a.style.flex=o.l+' 0 0';b.style.flex=o.p+' 0 0';s.append(a,b);plot.append(s);
+  const w=o.t/cmax*100;if(FIRST&&!RM)requestAnimationFrame(()=>requestAnimationFrame(()=>s.style.width=w+'%'));else s.style.width=w+'%';
+  const v=el('div','v',nf(o.t));v.append(el('small',null,pf(o.p/o.t*100,0)+' perempuan'));li.append(plot,v);
+  li._t=proper(o.k);li._rows=[['Laki-laki',nf(o.l)+' ('+pf(o.l/o.t*100)+')'],['Perempuan',nf(o.p)+' ('+pf(o.p/o.t*100)+')'],['Total DPT',nf(o.t)],['Desa',String(o.n)]];
+  li.setAttribute('aria-label',li._t+': DPT '+nf(o.t)+', laki-laki '+nf(o.l)+', perempuan '+nf(o.p));bindTip(li);return li}));
+ // desa
+ if($('fk').options.length===1)K.map(o=>o.k).sort((a,b)=>a.localeCompare(b,'id')).forEach(k=>{const o=el('option',null,proper(k));o.value=k;$('fk').append(o)});
+ const fk=$('fk').value,list=V.filter(r=>!fk||r.k===fk).sort(sorter(DS));
+ const dmax=scaleMax(Math.max(T.pr,...list.map(r=>r.pr||0)),20);ticks($('dax'),dmax,v=>Math.round(v)+'%');
+ $('dlg').replaceWith(Object.assign(plg(),{id:'dlg'}));
+ $('dbars').replaceChildren(...list.map(r=>pbar(r,dmax,T.pr,proper(r.d),fk?null:'Kec. '+proper(r.k),[
+  ['DPT',nf(r.t)],['Laki-laki / Perempuan',nf(r.l)+' / '+nf(r.p)],['Suara sah masuk',r.qc?nf(r.v):'tidak ada data'],['Partisipasi',pf(r.pr)],['TPS mengirim',r.qc?r.sent+' / '+r.tn:'–'],['Status',r.qc?stLabel(r.st):'tidak ada di quick count']])));
+ // tabel
+ $('tb').replaceChildren(...list.map(r=>{const tr=el('tr');[proper(r.d),proper(r.k),nf(r.l),nf(r.p),nf(r.t),r.qc?nf(r.v):'–',pf(r.pr)].forEach(x=>tr.append(el('td',null,x)));
+  const td=el('td');td.append(el('span','chip '+(r.qc?r.st:''),r.qc?stLabel(r.st):'tanpa data'));tr.append(td);return tr}));
+ const s=list.reduce((a,r)=>(a.l+=r.l,a.p+=r.p,a.t+=r.t,a.v+=r.v||0,a),{l:0,p:0,t:0,v:0}),fr=el('tr');
+ [fk?'Total Kec. '+proper(fk):'Total kabupaten','',nf(s.l),nf(s.p),nf(s.t),nf(s.v),pf(s.t?s.v/s.t*100:null),''].forEach(x=>fr.append(el('td',null,x)));$('tf').replaceChildren(fr);
+ const miss=V.filter(r=>!r.qc);$('desa').querySelector('.sub').textContent=V.length+' desa. Pilih kecamatan untuk mempersempit.'+(miss.length?' '+miss.map(r=>proper(r.d)+' ('+proper(r.k)+')').join(', ')+' belum ada di data quick count, jadi hanya DPT-nya yang tampil.':'');
+ FIRST=false}
+
+function bindSort(id,set){$(id).addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;$(id).querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));set(b.dataset.s);render()})}
+bindSort('ksort',s=>KS=s);bindSort('dsort',s=>DS=s);$('fk').onchange=render;
+
+let FRESH=false;
+function stamp(ok){const t=LIVE&&LIVE.last?new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date(LIVE.last)).replace(/\./g,':'):'';
+ $('upd').textContent=ok===false?'Gagal mengambil data quick count terbaru. Mencoba lagi otomatis.':t?'Suara sah terakhir diperbarui '+t+' WIB':'';$('upd').className='upd'+(ok===false?' bad':'')}
+async function refresh(){$('tp').classList.add('on');try{const v=await getJSON('/api/rev'),m=Number(v.rev||v.last||0);
+ if(!(FRESH&&LIVE&&Number(LIVE.rev||LIVE.last||0)===m)){LIVE=await getJSON('/api/data');FRESH=true;render()}stamp(true)}catch(e){stamp(false)}finally{$('tp').classList.remove('on')}}
+(async()=>{LIVE=store.get('qc-cache',null);
+ try{D=await getJSON('/data/dpt.json');$('src').textContent=D.sumber}catch(e){$('kpis').replaceChildren(el('p',null,'Data DPT belum bisa dimuat. Periksa sinyal internet, lalu muat ulang halaman.'));return}
+ render();refresh();setInterval(()=>{if(!document.hidden)refresh()},120000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()})})();
+</script>
+</body>
+</html>
