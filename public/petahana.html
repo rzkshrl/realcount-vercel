@@ -281,6 +281,9 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
 .qcap b{font-size:12px}.qcap b.up{color:var(--fin)}.qcap b.down{color:var(--red)}
 .qr{margin-top:6px}.ql{display:flex;justify-content:space-between;gap:var(--s2);font-size:14px}.ql b{font-variant-numeric:tabular-nums}
 .qr .seg{height:8px;margin-top:4px}.qr.inc .seg i{background:var(--c0)}.qr.riv .seg i{background:#9aa1a9}
+.rbw{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.rsrc{font-size:11px;font-weight:700;color:var(--mut);white-space:nowrap}
+.qnote{margin:var(--s2) 0 0;font-size:13px;color:var(--mut)}
+.upd{margin:0 0 var(--s2);font-size:13px;font-weight:600;color:var(--mut)}.upd.bad{color:var(--red)}
 .qnone{margin:var(--s3) 0 0;font-size:14px;color:var(--mut)}
 .oc{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,230px),1fr));gap:var(--s2);margin:0;padding:0;list-style:none}
 .oc li{display:grid;gap:2px;padding:var(--s3) var(--s4);background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm)}
@@ -328,7 +331,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
  <div class="wrap">
   <section class="panel notice" aria-labelledby="h-not">
    <h2 id="h-not">Tentang halaman ini</h2>
-   <p>Menang atau kalah diambil dari rekap <b id="src">HASIL PILKADES 2026 - PETAHANA</b>. Untuk petahana yang hasilnya belum ada, ditampilkan posisi sementara dari quick count, yang <b>bukan hasil resmi</b>.</p>
+   <p>Menang atau kalah diambil dari rekap <b id="src">HASIL PILKADES 2026 - PETAHANA</b>. Bila petahana belum ada di rekap, hasil diambil dari quick count setelah ketiga TPS desa itu Final (ditandai "quick count final"); sebelum itu ditampilkan posisi sementara. Quick count <b>bukan hasil resmi</b>.</p>
   </section>
 
   <section class="panel" aria-labelledby="h-sum">
@@ -351,6 +354,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
     <button class="btn" id="rs" type="button" hidden>Tampilkan semua</button>
    </div>
    <div class="pills" id="sp" role="group" aria-label="Saring menurut hasil"></div>
+   <p class="upd" id="upd" aria-live="polite"></p>
    <p class="count" id="cnt" aria-live="polite"></p>
    <div class="grid" id="grid"><p class="loadmsg">Memuat data petahana...</p></div>
   </section>
@@ -391,21 +395,24 @@ let P=null,LIVE=null,FS='',FIRST=true;
 function liveDesa(x){return LIVE&&Array.isArray(LIVE.desa)?LIVE.desa.find(d=>norm(d.kecamatan)===norm(x.k)&&norm(d.desa)===norm(x.d)):null}
 function rows(){return P.desa.filter(x=>x.c.some(c=>c.p)).map(x=>{const inc=x.c.find(c=>c.p),ld=liveDesa(x);
  let li=null;if(ld)li=ld.calon.find(c=>nkey(c.nama)===nkey(inc.nama))||ld.calon.find(c=>near(nkey(c.nama),nkey(inc.nama)));   // cocokkan nama saja: lebih baik kosong daripada orang yang salah
- const h=inc.h||'';return{x,inc,ld,li,h,res:RES[h]?h:''}})}
+ let h=inc.h||'',src=h?'rekap':'';
+ // belum ada di rekap: pakai quick count bila desa sudah Final (semua TPS Final) dan tidak imbang
+ if(!h&&ld&&li&&ld.status==='Final'){const iv=li.suara||0,top=Math.max(0,...ld.calon.filter(c=>c!==li).map(c=>c.suara||0));if(iv+top>0&&iv!==top){h=iv>top?'MENANG':'KALAH';src='qc'}}
+ return{x,inc,ld,li,h,src,res:RES[h]?h:''}})}
 function qc(r){const ld=r.ld;if(!ld||!r.li)return null;const vs=ld.calon.map(c=>c.suara||0),tot=vs.reduce((a,b)=>a+b,0);if(!tot)return null;
  const others=ld.calon.filter(c=>c!==r.li).sort((a,b)=>(b.suara||0)-(a.suara||0)),top=others[0],iv=r.li.suara||0,tv=top?top.suara||0:0;
  const tps=ld.tps||[],sent=tps.filter(t=>t.status!=='Belum masuk').length;
  return{tot,iv,top,tv,lead:iv>tv,tie:iv===tv,status:ld.status,sent,tpsN:tps.length}}
 
 function render(){if(!P)return;const R=rows(),open=P.desa.filter(x=>!x.c.some(c=>c.p));
- const n={MENANG:0,KALAH:0,'':0};R.forEach(r=>n[r.res]++);const decided=n.MENANG+n.KALAH;
+ const n={MENANG:0,KALAH:0,'':0};R.forEach(r=>n[r.res]++);const decided=n.MENANG+n.KALAH,nqc=R.filter(r=>r.src==='qc').length;
  const K=[[R.length,'Petahana mencalonkan diri','dari '+P.desa.length+' desa','var(--c0)'],[n.MENANG,'Menang','terpilih kembali','var(--fin)'],[n.KALAH,'Kalah','tidak terpilih','var(--red)'],[n[''],'Belum ada hasil','menunggu rekap','#9aa1a9']];
  $('kpi').replaceChildren(...K.map(([v,l,s,c],i)=>{const k=el('div','stat'),b=el('b');countUp(b,v);k.append(b,el('span',null,l),el('small',null,s));k.style.setProperty('--c',c);return k}));
  const T=R.length||1,p=el('p');
  p.append(el('span',null,decided?nf(n.MENANG)+' dari '+nf(decided)+' petahana yang sudah ada hasilnya terpilih kembali':'Belum ada hasil'),el('span',null,decided?pf(n.MENANG/decided*100):''));
  const sg=el('div','seg'+(FIRST?' grow':'')),run=el('span','run');[[n.MENANG,'var(--fin)'],[n.KALAH,'var(--red)'],[n[''],'#cfd3d8']].forEach(([v,c])=>{const i=el('i');i.style.width=v/T*100+'%';i.style.background=c;run.append(i)});sg.append(run);
  const lg=el('ul','lg');[['Menang',n.MENANG,'var(--fin)'],['Kalah',n.KALAH,'var(--red)'],['Belum ada hasil',n[''],'#cfd3d8']].forEach(([l,v,c])=>{const li=el('li',null,l+' '+v);li.style.setProperty('--c',c);lg.append(li)});
- $('prog').replaceChildren(p,sg,lg);
+ $('prog').replaceChildren(p,sg,lg);if(nqc)$('prog').append(el('p','qnote',nqc+' hasil diambil dari quick count final karena belum ada di rekap.'));
  // per kecamatan
  const by={};P.desa.forEach(x=>{const o=by[x.k]=by[x.k]||{MENANG:0,KALAH:0,'':0,inc:0,open:0};if(!x.c.some(c=>c.p))o.open++});R.forEach(r=>{const o=by[r.x.k];o.inc++;o[r.res]++});
  const fk=$('fk').value;
@@ -429,7 +436,7 @@ function render(){if(!P)return;const R=rows(),open=P.desa.filter(x=>!x.c.some(c=
  FIRST=false}
 
 function card(r){const {x,inc,li,res}=r,R0=RES[res],c=el('article','card pc '+R0.c);
- const h=el('div','ch'),t=el('div');t.append(el('h3',null,proper(x.d)),el('p',null,'Kec. '+proper(x.k)));h.append(t,el('span','rb '+R0.c,R0.l));c.append(h);
+ const h=el('div','ch'),t=el('div');t.append(el('h3',null,proper(x.d)),el('p',null,'Kec. '+proper(x.k)));const bw=el('div','rbw');bw.append(el('span','rb '+R0.c,R0.l));if(r.src==='qc')bw.append(el('small','rsrc','quick count final'));h.append(t,bw);c.append(h);
  const who=el('div','pw'),ph=el('div','ph');ph.style.setProperty('--ar',({'4x6':'2/3','3x4':'3/4','1x1':'1/1'})[li&&li.rasio]||'2/3');
  ph.append(el('span',null,proper(inc.nama).replace(/,.*/,'').split(' ').filter(w=>w&&!/\.$/.test(w)).slice(0,2).map(w=>w[0]).join('')));
  if(li&&li.foto){const im=new Image();im.loading='lazy';im.decoding='async';im.width=64;im.height=96;im.src=li.foto;im.alt='Foto '+proper(inc.nama);im.onerror=()=>im.remove();ph.append(im)}
@@ -456,11 +463,14 @@ function countUp(node,to){if(!FIRST||RM||!to){node.textContent=nf(to);return}con
 
 let qt;$('q').oninput=()=>{clearTimeout(qt);qt=setTimeout(render,150)};$('fk').onchange=render;
 $('rs').onclick=()=>{$('q').value='';$('fk').value='';FS='';render()};
+let FRESH=false;
+function stamp(ok){const t=LIVE&&LIVE.last?new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).format(new Date(LIVE.last)).replace(/\./g,':'):'';
+ $('upd').textContent=ok===false?'Gagal mengambil data quick count terbaru. Mencoba lagi otomatis.':t?'Data quick count terakhir diperbarui '+t+' WIB':'';$('upd').className='upd'+(ok===false?' bad':'')}
 async function refresh(){try{const v=await getJSON('/api/rev'),m=Number(v.rev||v.last||0);
- if(LIVE&&Number(LIVE.rev||LIVE.last||0)===m)return;LIVE=await getJSON('/api/data');render()}catch(e){}}
+ if(!(FRESH&&LIVE&&Number(LIVE.rev||LIVE.last||0)===m)){LIVE=await getJSON('/api/data');FRESH=true;render()}stamp(true)}catch(e){stamp(false)}}
 (async()=>{LIVE=store.get('qc-cache',null);
  try{P=await getJSON('/data/petahana.json');$('src').textContent=P.sumber}catch(e){$('grid').replaceChildren(el('p','empty','Data petahana belum bisa dimuat. Periksa sinyal internet, lalu muat ulang halaman.'));return}
- render();refresh();setInterval(()=>{if(!document.hidden)refresh()},300000);
+ render();refresh();setInterval(()=>{if(!document.hidden)refresh()},120000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()})})();
 </script>
 </body>
