@@ -104,3 +104,13 @@ Desa baru: tambah calon di "Calon dan foto" (3 TPS dibuat otomatis), lalu Akun d
 - Halaman Petahana: cek data tiap 5 menit.
 - Foto calon disimpan di browser 30 hari (foto baru otomatis punya alamat baru).
 - Nilai ada di `POLL_*` pada `public/index.html`.
+
+
+## Data DPT (halaman /partisipasi)
+
+- Kabupaten: /admin > tab **Data DPT** > unggah file .xlsx/.csv (kolom Kecamatan, Desa, DPT Laki-laki, DPT Perempuan, Total DPT).
+  Panel memeriksa file dulu (baris ganda, angka tidak valid, total tidak cocok, nama desa yang tidak ada di quick count) dan
+  menampilkan perbedaan dengan data sekarang. Data baru disimpan hanya setelah tombol Simpan ditekan.
+- Tersimpan di sheet **DPT** (dibuat otomatis). Sheet ini juga boleh diedit langsung. Setiap penggantian dicatat di Riwayat.
+- Halaman publik membaca /api/dpt (cache 60 detik). Bila sheet DPT belum ada, dipakai file bawaan /data/dpt.json.
+- Setelah menempel Code.gs baru: Deploy > Manage deployments > Edit > New version (tidak perlu menjalankan setupDB).

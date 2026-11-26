@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#b5121b">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Partisipasi Pemilih Pilkades Kabupaten Wonogiri 2026">
-<meta property="og:description" content="137.921 pemilih di 50 desa. Partisipasi sementara dari quick count, per desa dan per kecamatan.">
+<meta property="og:description" content="DPT dan partisipasi pemilih sementara dari quick count, per desa, per kecamatan dan total kabupaten.">
 <meta property="og:image" content="/img/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="/img/favicon.png" type="image/png">
@@ -259,7 +259,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
 
   <section class="panel" aria-labelledby="h-kec">
    <h2 id="h-kec">Per Kecamatan</h2>
-   <p class="sub">18 kecamatan yang menggelar Pilkades. Arahkan kursor atau ketuk batang untuk rinciannya.</p>
+   <p class="sub" id="ksub">Kecamatan yang menggelar Pilkades. Arahkan kursor atau ketuk batang untuk rinciannya.</p>
    <div class="chart">
     <div class="ctl">
      <div class="grow"><h3>Partisipasi per kecamatan</h3></div>
@@ -282,7 +282,7 @@ footer{position:relative;overflow:hidden;margin-top:var(--s8);padding:var(--s7) 
 
   <section class="panel" id="desa" aria-labelledby="h-desa">
    <h2 id="h-desa">Per Desa</h2>
-   <p class="sub">50 desa. Pilih kecamatan untuk mempersempit.</p>
+   <p class="sub">Pilih kecamatan untuk mempersempit.</p>
    <div class="chart">
     <div class="ctl">
      <label>Kecamatan<select id="fk"><option value="">Semua kecamatan</option></select></label>
@@ -370,7 +370,7 @@ function render(){if(!D)return;const {V,K,T}=model();
  // ringkasan
  $('gp').textContent=pf(T.pr);$('garc').style.strokeDashoffset=100-Math.min(100,T.pr);
  $('gauge').setAttribute('aria-label','Partisipasi total sementara '+pf(T.pr)+' dari DPT');
- const kp=[['Total DPT',nf(T.t),'50 desa di 18 kecamatan'],['Suara sah masuk',nf(T.v),T.tn?T.sent+' dari '+T.tn+' TPS mengirim':'menunggu data'],
+ const kp=[['Total DPT',nf(T.t),V.length+' desa di '+K.length+' kecamatan'],['Suara sah masuk',nf(T.v),T.tn?T.sent+' dari '+T.tn+' TPS mengirim':'menunggu data'],
   ['Partisipasi desa Final',T.fpr==null?'–':pf(T.fpr),T.fin+' desa sudah Final'],['Belum memilih / belum masuk',nf(Math.max(0,T.t-T.v)),pf(Math.max(0,100-T.pr))+' dari DPT']];
  const lp=el('div','lp'),p=el('p');p.append(el('span',null,'Komposisi DPT'),el('span',null,nf(T.t)+' pemilih'));const st=el('div','stk');
  [[T.l,'var(--L)'],[T.p,'var(--P)']].forEach(([v,c])=>{const i=el('i');i.style.flexGrow=v;i.style.background=c;st.append(i)});
@@ -382,6 +382,7 @@ function render(){if(!D)return;const {V,K,T}=model();
   const b=el('li',null,'Sementara (bergaris)');b.style.setProperty('--c','repeating-linear-gradient(135deg,var(--red) 0 3px,#d9636a 3px 5px)');
   const c=el('li','ln',null);c.append(document.createTextNode('Rata-rata kabupaten'));const cb=el('b',null,pf(T.pr));c.append(cb);u.append(a,b,c);return u};
  // kecamatan
+ $('ksub').textContent=K.length+' kecamatan yang menggelar Pilkades. Arahkan kursor atau ketuk batang untuk rinciannya.';
  const kmax=scaleMax(Math.max(T.pr,...K.map(o=>o.pr||0)),20);ticks($('kax'),kmax,v=>Math.round(v)+'%');
  $('klg').replaceWith(Object.assign(plg(),{id:'klg'}));
  $('kbars').replaceChildren(...K.slice().sort(sorter(KS)).map(o=>pbar(o,kmax,T.pr,proper(o.k),o.n+' desa',[
@@ -418,7 +419,8 @@ function stamp(ok){const t=LIVE&&LIVE.last?new Intl.DateTimeFormat('id-ID',{time
 async function refresh(){$('tp').classList.add('on');try{const v=await getJSON('/api/rev'),m=Number(v.rev||v.last||0);
  if(!(FRESH&&LIVE&&Number(LIVE.rev||LIVE.last||0)===m)){LIVE=await getJSON('/api/data');FRESH=true;render()}stamp(true)}catch(e){stamp(false)}finally{$('tp').classList.remove('on')}}
 (async()=>{LIVE=store.get('qc-cache',null);
- try{D=await getJSON('/data/dpt.json');$('src').textContent=D.sumber}catch(e){$('kpis').replaceChildren(el('p',null,'Data DPT belum bisa dimuat. Periksa sinyal internet, lalu muat ulang halaman.'));return}
+ try{D=await getJSON('/api/dpt');if(!D.desa||!D.desa.length)throw 0}catch(e){D=null}
+ try{if(!D)D=await getJSON('/data/dpt.json');$('src').textContent=D.sumber+(D.diperbarui?' (diperbarui '+new Intl.DateTimeFormat('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'long',year:'numeric'}).format(new Date(D.diperbarui))+')':'')}catch(e){$('kpis').replaceChildren(el('p',null,'Data DPT belum bisa dimuat. Periksa sinyal internet, lalu muat ulang halaman.'));return}
  render();refresh();setInterval(()=>{if(!document.hidden)refresh()},120000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()})})();
 </script>

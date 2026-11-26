@@ -215,6 +215,27 @@ html.authed #login{display:none!important}
 .lt tr.unl td{background:#fffbea}
 @media (max-width:760px){.msum{grid-template-columns:1fr 1fr}.mr{grid-template-columns:1fr}.at th:nth-child(3),.at td:nth-child(3){display:none}}
 @media (max-width:420px){.tpsf .vr input{width:110px}}
+
+/* Data DPT */
+.dsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s3);margin:var(--s3) 0}
+.dsum div{border:1px solid var(--line);border-radius:var(--r-sm);padding:var(--s3) var(--s4)}
+.dsum b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.dsum span{font-size:13px;color:var(--mut)}
+.dsum small{display:block;font-size:12px;color:var(--mut)}.dsum .up{color:var(--fin)}.dsum .dn{color:#b42318}
+.dmeta{margin:0;color:var(--mut);font-size:14px}
+.dhelp{margin:var(--s2) 0 var(--s3);color:var(--mut);font-size:14px}.dhelp b{color:var(--ink)}
+.iss{list-style:none;margin:var(--s3) 0;padding:0;display:grid;gap:6px}
+.iss li{padding:var(--s2) var(--s3);border-radius:var(--r-sm);font-size:14px;border-left:4px solid}
+.iss li.err{background:#fdecea;border-color:#b42318}.iss li.warn{background:#fdf0d8;border-color:#e8a33d}.iss li.ok{background:#e2f2e9;border-color:var(--fin)}
+.iss li details summary{cursor:pointer;font-weight:600}.iss li details p{margin:4px 0 0}
+.dtab{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.dtab th,.dtab td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.dtab th:nth-child(-n+3),.dtab td:nth-child(-n+3){text-align:left}
+.dtab th{font-size:13px;color:var(--mut);position:sticky;top:0;background:#fff}
+.dtab tr.e td{background:#fdecea}.dtab tr.w td{background:#fdf0d8}.dtab tr.n td{background:#e2f2e9}.dtab tr.c td{background:#fbf5e1}
+.dtab .pl{color:var(--fin)}.dtab .mn{color:#b42318}
+.dscroll{max-height:420px;overflow:auto;border:1px solid var(--line);border-radius:var(--r-sm);margin-top:var(--s3)}
+.dsheet{margin-top:var(--s3)}
+.st.bad{color:#b42318}
 </style>
 </head>
 <body>
@@ -245,6 +266,7 @@ html.authed #login{display:none!important}
 <button role="tab" data-t="g" aria-selected="false" type="button">Input per kecamatan</button>
 <button role="tab" data-t="c" aria-selected="false" type="button">Calon dan foto</button>
 <button role="tab" data-t="a" aria-selected="false" type="button">Akun desa</button>
+<button role="tab" data-t="d" aria-selected="false" type="button">Data DPT</button>
 <button role="tab" data-t="l" aria-selected="false" type="button">Riwayat</button>
 <button role="tab" data-t="p" aria-selected="false" type="button">Pengaturan</button>
 </div>
@@ -287,6 +309,20 @@ html.authed #login{display:none!important}
 <button class="btn alt" id="arf" type="button">Muat ulang</button><button class="btn" id="anew" type="button">Buat akun untuk desa baru</button></div>
 <p class="st" id="asum"></p><p class="st" id="amsg" role="status"></p>
 <div class="card" id="alist"></div>
+</section>
+
+<section id="td" role="tabpanel" hidden>
+<div class="card"><h2>Data DPT sekarang</h2>
+<p class="dmeta" id="dmeta">Memuat...</p>
+<div class="dsum" id="dcur"></div>
+<div class="btns"><button class="btn alt" id="ddl" type="button" disabled>Unduh sebagai Excel</button><a class="btn alt" href="/partisipasi" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;text-decoration:none">Buka halaman Partisipasi</a></div>
+</div>
+<div class="card" id="dup"><h2>Ganti dengan file Excel</h2>
+<p class="dhelp">File <b>.xlsx</b> atau <b>.csv</b> dengan kolom <b>Kecamatan</b>, <b>Desa</b>, <b>DPT Laki-laki</b>, <b>DPT Perempuan</b> dan <b>Total DPT</b>. Baris judul boleh di mana saja; bila ada beberapa tabel, yang barisnya paling banyak yang dipakai. Paling mudah: unduh data sekarang di atas, ubah angkanya, lalu unggah lagi. Data baru belum tersimpan sebelum Anda menekan tombol Simpan.</p>
+<label class="drop"><input id="dfile" type="file" accept=".xlsx,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv"><span><b>Pilih file</b> atau seret ke sini</span></label>
+<p class="st" id="dmsg" role="status" aria-live="polite"></p>
+<div id="dprev"></div>
+</div>
 </section>
 
 <section id="tl" role="tabpanel" hidden>
@@ -628,10 +664,10 @@ function fillD(d){const k=$('fk').value,ds=desas().filter(x=>x.kecamatan===k);
 $('fk').onchange=()=>{fillD();render()};$('fd').onchange=render;
 document.querySelectorAll('#work [role=tab]').forEach(b=>b.onclick=()=>go2(b.dataset.t));
 function go2(t){TAB=t;document.querySelectorAll('#work [role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x.dataset.t===t)));
- ['m','v','g','c','a','l','p'].forEach(x=>$('t'+x).hidden=x!==t);
+ ['m','v','g','c','a','d','l','p'].forEach(x=>$('t'+x).hidden=x!==t);
  $('sel').hidden=!['v','g','c'].includes(t);$('fdl').hidden=t==='g';$('sel').classList.toggle('one',t==='g');render()}
 function render(){if(!ME)return;if(!isKab()){opView();return}
- if(TAB==='m')monView();if(TAB==='v')desaView();if(TAB==='g')gridv();if(TAB==='c')cards();if(TAB==='a')akunView();if(TAB==='l')logView()}
+ if(TAB==='m')monView();if(TAB==='v')desaView();if(TAB==='g')gridv();if(TAB==='c')cards();if(TAB==='a')akunView();if(TAB==='d')dptView();if(TAB==='l')logView()}
 
 /* Monitoring */
 let MONT=0,MONAT=0;
@@ -797,6 +833,105 @@ async function logView(force){const box=$('llist');
  tb.append(th,body);const w=el('div','dtw');w.append(tb);box.replaceChildren(w)}
 let lqt;$('lq').oninput=()=>{clearTimeout(lqt);lqt=setTimeout(()=>logView(),150)};
 $('lrf').onclick=()=>logView(true);
+
+
+/* Data DPT: unggah Excel -> periksa -> simpan ke sheet DPT */
+let DPTC=null,DPTN=null,DPTF=null,DPTW=null;
+const dnorm=s=>String(s??'').toUpperCase().replace(/[^A-Z0-9]/g,''),dkey=(k,d)=>dnorm(k)+'|'+dnorm(d);
+const dclean=s=>String(s??'').trim().replace(/\s+/g,' ').toUpperCase();
+function loadLib(){return window.XLSX?Promise.resolve():new Promise((ok,no)=>{const s=document.createElement('script');s.src='/js/xlsx-lite.js';s.onload=ok;s.onerror=()=>no(new Error('Gagal memuat pembaca Excel. Periksa sinyal, lalu coba lagi.'));document.head.append(s)})}
+function dptStat(rows){const k=new Set(rows.map(r=>r.k));const t=rows.reduce((a,r)=>(a.l+=r.l,a.p+=r.p,a.t+=r.t,a),{l:0,p:0,t:0});return Object.assign(t,{n:rows.length,kec:k.size})}
+async function dptView(force){if(DPTC&&!force){dcur();return}
+ $('dmeta').textContent='Memuat...';const r=await call('getDpt').catch(()=>null);
+ if(!r){$('dmeta').textContent='Gagal memuat data DPT. Periksa sinyal.';return}
+ if(expired(r)){logout('Sesi berakhir. Masuk lagi.');return}
+ if(r.error){$('dmeta').textContent=r.error;return}
+ DPTC=r.dpt;if(!DPTC.desa.length){try{const f=await fetch('/data/dpt.json',{cache:'no-store'}).then(x=>x.json());DPTC=Object.assign(f,{bawaan:true})}catch(e){}}
+ dcur();if(DPTN)dprev()}
+function dcur(){const c=DPTC;if(!c)return;const s=dptStat(c.desa||[]);
+ $('dmeta').textContent=c.bawaan?'Belum pernah diunggah. Halaman Partisipasi memakai data bawaan: '+c.sumber+'.':c.sumber+' · diperbarui '+(c.diperbarui?tsA(c.diperbarui):'-')+' WIB';
+ $('dcur').replaceChildren(...[[nf(s.n),'desa'],[nf(s.kec),'kecamatan'],[nf(s.t),'total DPT'],[nf(s.l),'laki-laki'],[nf(s.p),'perempuan']].map(([b,t])=>{const d=el('div');d.append(el('b',null,b),el('span',null,t));return d}));
+ $('ddl').disabled=!s.n}
+$('ddl').onclick=async()=>{const b=$('ddl');busy(b,true);try{await loadLib();
+ const rows=[['NO','KECAMATAN','DESA','DPT LAKI-LAKI','DPT PEREMPUAN','TOTAL DPT']].concat(DPTC.desa.slice().sort((a,b)=>a.k.localeCompare(b.k)||a.d.localeCompare(b.d)).map((r,i)=>[i+1,r.k,r.d,r.l,r.p,r.t]));
+ const blob=XLSX.write([{name:'DPT',rows,header:true,widths:[6,18,22,15,16,12]}]),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Data_DPT_Pilkades_2026.xlsx';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+ catch(e){$('dmsg').className='st bad';$('dmsg').textContent=e.message}finally{busy(b,false)}};
+
+/* cari tabel DPT di satu sheet: baris judul dengan Kecamatan + Desa + Laki-laki + Perempuan (+ Total) */
+function dfind(rows){const up=v=>String(v??'').trim().toUpperCase().replace(/\s+/g,' ');
+ const H={k:/^(KECAMATAN|KEC\.?)$/,d:/^(DESA|KELURAHAN|NAMA DESA|DESA ?\/ ?KEL(URAHAN)?\.?)$/,l:/LAKI|^L$|^LK$/,p:/PEREMPUAN|WANITA|^P$|^PR$/,t:/TOTAL|JUMLAH|^L ?\+ ?P$/};
+ const num=v=>{if(typeof v==='number')return v;const s=String(v??'').trim().replace(/[\s.,]/g,'');return s===''?NaN:/^-?\d+$/.test(s)?Number(s):NaN};
+ const blocks=[];
+ rows.forEach((r,ri)=>r.forEach((v,ci)=>{if(!H.d.test(up(v)))return;
+  const near=(re,from,to,not)=>{for(let c=from;c<=to;c++){const u=up(r[c]);if(c!==ci&&re.test(u)&&!(not&&not.test(u)))return c}return -1};
+  const k=near(H.k,Math.max(0,ci-4),ci+4),l=near(H.l,ci+1,ci+8),p=near(H.p,ci+1,ci+8),t=near(H.t,ci+1,ci+9,/LAKI|PEREMPUAN|WANITA/);
+  if(k<0||l<0||p<0)return;
+  const out=[];let kc='',gap=0;
+  for(let i=ri+1;i<rows.length;i++){const x=rows[i]||[],d=dclean(x[ci]),kk=dclean(x[k]);
+   if(!d){if(out.length||++gap>2)break;continue}
+   if(kk)kc=kk;if(H.d.test(d)||/^(JUMLAH|TOTAL)/.test(d))break;
+   const L=num(x[l]),Pp=num(x[p]),T=t<0?L+Pp:num(x[t]);out.push({k:kc,d,l:L,p:Pp,t:isNaN(T)&&t>=0&&x[t]==null?L+Pp:T,line:i+1})}
+  blocks.push({rows:out,at:'baris '+(ri+1)+', kolom '+String.fromCharCode(65+Math.min(ci,k)),hasT:t>=0})}));
+ return blocks.sort((a,b)=>b.rows.length-a.rows.length)[0]||null}
+
+async function dload(f){const m=$('dmsg');DPTN=null;$('dprev').replaceChildren();if(!f)return;
+ if(f.size>5*1024*1024){m.className='st bad';m.textContent='File terlalu besar (maks. 5 MB).';return}
+ m.className='st load';m.textContent='Membaca '+f.name+'...';
+ try{await loadLib();const isCsv=/\.csv$/i.test(f.name)||f.type==='text/csv';
+  DPTW=isCsv?XLSX.csv(await f.text()):await XLSX.read(await f.arrayBuffer());DPTF=f.name;dpick()}
+ catch(e){m.className='st bad';m.textContent=e.message||'File tidak bisa dibaca.'}}
+function dpick(si){const m=$('dmsg'),sh=DPTW.sheets;let best=null,bi=0;
+ if(si==null)sh.forEach((s,i)=>{const b=dfind(s.rows);if(b&&(!best||b.rows.length>best.rows.length)){best=b;bi=i}});else{bi=si;best=dfind(sh[si].rows)}
+ if(!best||!best.rows.length){m.className='st bad';m.textContent='Tabel DPT tidak ditemukan'+(si!=null?' di sheet ini':'')+'. Pastikan ada baris judul berisi Kecamatan, Desa, DPT Laki-laki dan DPT Perempuan.';DPTN=null;if(sh.length>1)dprev(bi);else $('dprev').replaceChildren();return}
+ m.className='st';m.textContent='';DPTN={rows:best.rows,sheet:sh[bi].name,at:best.at,hasT:best.hasT,si:bi};dprev()}
+
+function dprev(bad){const box=$('dprev'),out=[];
+ if(DPTW&&DPTW.sheets.length>1){const lb=el('label','dsheet',null);lb.append('Sheet yang dibaca');const sel=el('select');DPTW.sheets.forEach((s,i)=>sel.append(opt(s.name,String(i))));sel.value=String(DPTN?DPTN.si:bad||0);sel.onchange=()=>dpick(+sel.value);lb.append(sel);out.push(lb)}
+ if(!DPTN){box.replaceChildren(...out);return}
+ const N=DPTN.rows,errs=[],warns=[],seen={};
+ N.forEach(r=>{r.issue='';const key=dkey(r.k,r.d);
+  if(!r.k){r.issue='e';errs.push('Baris '+r.line+' ('+r.d+'): kecamatan kosong.')}
+  if([r.l,r.p,r.t].some(v=>!Number.isFinite(v)||v<0||Math.floor(v)!==v)){r.issue='e';errs.push('Baris '+r.line+' ('+r.d+'): angka DPT kosong atau tidak valid.')}
+  else if(r.t!==r.l+r.p){r.issue=r.issue||'w';warns.push('Baris '+r.line+' ('+P(r.d)+'): total '+nf(r.t)+' tidak sama dengan laki-laki + perempuan ('+nf(r.l+r.p)+'). Total dari file yang dipakai.')}
+  if(seen[key]){r.issue='e';errs.push('Desa '+P(r.d)+' (Kec. '+P(r.k)+') muncul dua kali: baris '+seen[key]+' dan '+r.line+'.')}else seen[key]=r.line});
+ const qc=new Map();desas().forEach(x=>qc.set(dkey(x.kecamatan,x.desa),x));
+ const notQc=N.filter(r=>r.k&&!qc.has(dkey(r.k,r.d))),noDpt=[...qc.entries()].filter(([k])=>!seen[k]).map(([,x])=>x);
+ const old=new Map((DPTC&&DPTC.desa||[]).map(r=>[dkey(r.k,r.d),r]));
+ N.forEach(r=>{const o=old.get(dkey(r.k,r.d));r.old=o||null;r.delta=o?r.t-o.t:null});
+ const changed=N.filter(r=>r.old&&(r.old.l!==r.l||r.old.p!==r.p||r.old.t!==r.t)),added=N.filter(r=>!r.old),removed=[...old.entries()].filter(([k])=>!seen[k]).map(([,o])=>o);
+ const s=dptStat(N.filter(r=>r.issue!=='e')),cs=dptStat(DPTC&&DPTC.desa||[]),dt=s.t-cs.t;
+ out.push(el('p','dmeta',DPTF+' · sheet "'+DPTN.sheet+'" · tabel mulai '+DPTN.at+(DPTN.hasT?'':' · kolom total tidak ada, dihitung dari laki-laki + perempuan')));
+ const sum=el('div','dsum');[[nf(N.length),'desa',cs.n?(N.length-cs.n?(N.length>cs.n?'+':'')+(N.length-cs.n)+' dari sekarang':'sama dengan sekarang'):''],[nf(s.kec),'kecamatan',''],[nf(s.t),'total DPT',cs.n?(dt?(dt>0?'+':'')+nf(dt)+' dari sekarang':'sama dengan sekarang'):''],[nf(s.l),'laki-laki',''],[nf(s.p),'perempuan','']]
+  .forEach(([b,t,x])=>{const d=el('div');d.append(el('b',null,b),el('span',null,t));if(x)d.append(el('small',x[0]==='+'?'up':x[0]==='-'?'dn':'',x));sum.append(d)});out.push(sum);
+ const iss=el('ul','iss'),li=(cls,title,items)=>{const l=el('li',cls);if(!items||!items.length){l.textContent=title}else{const d=el('details');d.append(el('summary',null,title));items.slice(0,60).forEach(t=>d.append(el('p',null,t)));if(items.length>60)d.append(el('p',null,'...dan '+(items.length-60)+' lagi'));l.append(d)}iss.append(l)};
+ if(errs.length)li('err',errs.length+' masalah harus diperbaiki dulu di file, lalu unggah lagi',errs);
+ if(warns.length)li('warn',warns.length+' baris dengan total tidak cocok',warns);
+ if(notQc.length)li('warn',notQc.length+' desa tidak ada di data quick count (nama beda ejaan, atau memang tidak ikut quick count). Partisipasinya akan tampil "–".',notQc.map(r=>P(r.d)+' · Kec. '+P(r.k)));
+ if(noDpt.length)li('warn',noDpt.length+' desa quick count tidak ada di file ini, jadi tidak punya DPT',noDpt.map(x=>P(x.desa)+' · Kec. '+P(x.kecamatan)));
+ if(DPTC&&DPTC.desa.length){const ch=[];changed.forEach(r=>ch.push(P(r.d)+' (Kec. '+P(r.k)+'): '+nf(r.old.t)+' → '+nf(r.t)));added.forEach(r=>ch.push(P(r.d)+' (Kec. '+P(r.k)+'): baru, '+nf(r.t)));removed.forEach(o=>ch.push(P(o.d)+' (Kec. '+P(o.k)+'): dihapus, sebelumnya '+nf(o.t)));
+  li(ch.length?'ok':'ok',ch.length?ch.length+' desa berubah dibanding data sekarang':'Angkanya sama persis dengan data sekarang',ch)}
+ if(!errs.length&&!warns.length&&!notQc.length&&!noDpt.length)li('ok','Semua baris terbaca dan cocok dengan desa quick count.');
+ out.push(iss);
+ const tw=el('div','dscroll'),tb=el('table','dtab');tb.innerHTML='<thead><tr><th>Baris</th><th>Kecamatan</th><th>Desa</th><th>Laki-laki</th><th>Perempuan</th><th>Total</th><th>Perubahan</th></tr></thead>';
+ const body=el('tbody');N.forEach(r=>{const tr=el('tr',r.issue||(r.old?(r.old.l!==r.l||r.old.p!==r.p||r.old.t!==r.t?'c':''):DPTC&&DPTC.desa.length?'n':''));[String(r.line),P(r.k),P(r.d),nf(r.l),nf(r.p),nf(r.t)].forEach(x=>tr.append(el('td',null,Number.isFinite(+String(x).replace(/\./g,''))||x?x:'?')));
+  const c=el('td');if(r.delta)c.append(el('span',r.delta>0?'pl':'mn',(r.delta>0?'+':'')+nf(r.delta)));else if(!r.old&&DPTC&&DPTC.desa.length)c.textContent='baru';else c.textContent=r.delta===0?'–':'';tr.append(c);body.append(tr)});
+ tb.append(body);tw.append(tb);out.push(tw);
+ const bt=el('div','btns'),sv=el('button','btn',errs.length?'Perbaiki masalah dulu':'Simpan '+N.length+' desa sebagai data DPT'),cn=el('button','btn alt','Batal');sv.type=cn.type='button';sv.disabled=!!errs.length;
+ cn.onclick=()=>{DPTN=null;DPTW=null;$('dfile').value='';$('dmsg').textContent='';box.replaceChildren()};
+ sv.onclick=()=>dsave(sv);bt.append(sv,cn);out.push(bt);box.replaceChildren(...out)}
+
+async function dsave(b){const m=$('dmsg');busy(b,true,'Menyimpan...');
+ const rows=DPTN.rows.map(r=>({k:r.k,d:r.d,l:r.l,p:r.p,t:r.t}));
+ let r=null;for(let i=0;i<3;i++){r=await call('saveDpt',{rows,sumber:'Data DPT Pilkades Serentak 2026'}).catch(()=>null);if(r&&r.error==='busy'){await sleep(1500);continue}break}
+ busy(b,false);
+ if(!r){m.className='st bad';m.textContent='Gagal terhubung. Data belum tersimpan, coba lagi.';return}
+ if(expired(r)){logout('Sesi berakhir. Masuk lagi.');return}
+ if(r.error){m.className='st bad';m.textContent=r.error;return}
+ DPTC=r.dpt;DPTN=null;DPTW=null;$('dfile').value='';$('dprev').replaceChildren();dcur();
+ m.className='st ok';m.textContent=(r.info||'Tersimpan.')+' Halaman Partisipasi ikut berubah dalam sekitar 1 menit.'}
+$('dfile').onchange=e=>dload(e.target.files[0]);
+(()=>{const c=$('dup');let n=0;c.addEventListener('dragenter',e=>{e.preventDefault();n++;c.classList.add('dragging')});c.addEventListener('dragleave',()=>{if(--n<=0){n=0;c.classList.remove('dragging')}});
+ c.addEventListener('dragover',e=>e.preventDefault());c.addEventListener('drop',e=>{e.preventDefault();n=0;c.classList.remove('dragging');const f=e.dataTransfer.files[0];if(f)dload(f)})})();
 
 ['dragover','drop'].forEach(t=>addEventListener(t,e=>{if(e.dataTransfer&&[...e.dataTransfer.types].includes('Files'))e.preventDefault()}));
 addEventListener('beforeunload',e=>{if(PEND.size){e.preventDefault();e.returnValue=''}});

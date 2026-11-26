@@ -15,20 +15,22 @@
  *   Akun          username, role, kecamatan, desa, salt, hash, aktif, last_login
  *   Akun_Cetak    daftar sandi awal (sekali tampil) - HAPUS setelah dibagikan
  *   Riwayat       waktu, jenis, kecamatan, desa, tps, calon, lama, baru, oleh
+ *   DPT           kecamatan, desa, laki, perempuan, total (diisi dari /admin > Data DPT, atau diedit langsung)
  *
  * Urutan pasang: (buat salinan spreadsheet dulu) -> tempel kode -> jalankan setupDB
  *   -> Script properties API_TOKEN & ADMIN_KEY sudah ada -> Deploy > Manage deployments > Edit > New version
  */
 const STATUS = ['Belum masuk', 'Sementara', 'Final'];
 const TPS_PER_DESA = 3;
-const SH = { CFG: 'Config_Calon', TPS: 'TPS', VOTE: 'Suara_TPS', TST: 'TPS_Status', AKUN: 'Akun', CETAK: 'Akun_Cetak', LOG: 'Riwayat' };
+const SH = { CFG: 'Config_Calon', TPS: 'TPS', VOTE: 'Suara_TPS', TST: 'TPS_Status', AKUN: 'Akun', CETAK: 'Akun_Cetak', LOG: 'Riwayat', DPT: 'DPT' };
 const HEAD = {
   CFG: ['id', 'kecamatan', 'desa', 'urut_daftar', 'nama_calon', 'petahana', 'aktif', 'nomor_urut', 'foto_url', 'foto_rasio'],
   TPS: ['tps_id', 'kecamatan', 'desa', 'no_tps'],
   VOTE: ['tps_id', 'calon_id', 'suara', 'updated', 'oleh'],
   TST: ['tps_id', 'status', 'updated', 'oleh'],
   AKUN: ['username', 'role', 'kecamatan', 'desa', 'salt', 'hash', 'aktif', 'last_login'],
-  LOG: ['waktu', 'jenis', 'kecamatan', 'desa', 'tps', 'calon', 'lama', 'baru', 'oleh']
+  LOG: ['waktu', 'jenis', 'kecamatan', 'desa', 'tps', 'calon', 'lama', 'baru', 'oleh'],
+  DPT: ['kecamatan', 'desa', 'laki', 'perempuan', 'total']
 };
 const SESSION_DAYS = 14;
 const CHUNK = 30000;          // karakter per bagian cache (batas CacheService 100 KB per nilai)
@@ -183,7 +185,7 @@ function logoutAll() {
 }
 
 // Edit manual langsung di spreadsheet membatalkan cache dashboard dan menandai perubahan
-function onEdit() { bumpRev_(); dropDash_(); }
+function onEdit() { bumpRev_(); dropDash_(); CacheService.getScriptCache().remove('dpt'); }
 
 /** ---------- Data inti ---------- */
 function loadAll_() {
@@ -230,6 +232,7 @@ function doGet(e) {
   const sp = PropertiesService.getScriptProperties(), tok = sp.getProperty('API_TOKEN');
   const p = (e && e.parameter) || {};
   if (!(p.api && tok && p.token === tok)) return json_({ error: 'unauthorized' });
+  if (p.mode === 'dpt') return json_(dptGet_());
   if (p.mode === 'rev') {
     let rev = Number(sp.getProperty('REV') || 0), last = sp.getProperty('LAST');
     if (!rev || last == null) { rev = bumpRev_(); dropDash_(); last = getDashboardData().last; sp.setProperty('LAST', String(last)); }
@@ -362,14 +365,15 @@ function admin_(b) {
   if (fn === 'list') return Object.assign(adminList_(me), { me: me });
   if (fn === 'listAkun') return listAkun_();
   if (fn === 'getLog') return getLog_(d);
-  const f = { saveTps: saveTps_, saveCalon: saveCalon_, addCalon: addCalon_, reset: reset_, resetPass: resetPass_, setAktif: setAktif_, logoutUser: logoutUser_, createAkun: createAkun_ }[fn];
+  if (fn === 'getDpt') return { ok: true, dpt: dptGet_() };
+  const f = { saveTps: saveTps_, saveCalon: saveCalon_, addCalon: addCalon_, reset: reset_, resetPass: resetPass_, setAktif: setAktif_, logoutUser: logoutUser_, createAkun: createAkun_, saveDpt: saveDpt_ }[fn];
   if (!f) return { error: 'bad request' };
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(25000)) return { error: 'busy', info: 'Sistem sibuk, mencoba lagi...' };
   try {
     const r = f(d, me);
     if (!r || !r.ok) return r;
-    if (fn === 'saveTps' || fn === 'resetPass' || fn === 'setAktif' || fn === 'logoutUser' || fn === 'createAkun') return r;
+    if (fn === 'saveTps' || fn === 'resetPass' || fn === 'setAktif' || fn === 'logoutUser' || fn === 'createAkun' || fn === 'saveDpt') return r;
     SpreadsheetApp.flush(); bumpRev_(); dropDash_();
     const list = adminList_(me);
     PropertiesService.getScriptProperties().setProperty('LAST', String(list.tps.reduce((m, x) => Math.max(m, x.updated || 0), 0)));
@@ -610,4 +614,50 @@ function diagnose() {
   } catch (e) { add(false, 'getDashboardData error: ' + e); }
   add(true, 'Sesi login aktif: ' + Object.keys(sp.getProperties()).filter(k => k.indexOf('S_') === 0).length);
   Logger.log(out.join('\n'));
+}
+
+/** ---------- Data DPT (halaman /partisipasi) ---------- */
+/** Publik: {sumber, diperbarui, desa:[{k,d,l,p,t}]}. Nama operator tidak ikut dikirim. */
+function dptGet_() {
+  const c = CacheService.getScriptCache(), hit = c.get('dpt');
+  if (hit) return JSON.parse(hit);
+  const sh = sheet_('DPT'), sp = PropertiesService.getScriptProperties();
+  const desa = !sh ? [] : rows_(sh).filter(r => r.kecamatan && r.desa).map(r => {
+    const l = Number(r.laki) || 0, p = Number(r.perempuan) || 0;
+    return { k: String(r.kecamatan).trim(), d: String(r.desa).trim(), l: l, p: p, t: Number(r.total) || (l + p) };
+  });
+  const out = { sumber: sp.getProperty('DPT_SRC') || 'Data DPT Pilkades Serentak 2026', diperbarui: Number(sp.getProperty('DPT_AT') || 0), desa: desa };
+  try { c.put('dpt', JSON.stringify(out), CACHE_SEC); } catch (e) {}
+  return out;
+}
+
+/** Ganti seluruh data DPT. d = {sumber, rows:[{k,d,l,p,t}]} - hanya kabupaten */
+function saveDpt_(d, me) {
+  const rows = Array.isArray(d.rows) ? d.rows : [];
+  if (!rows.length) return { error: 'Tidak ada baris DPT.' };
+  if (rows.length > 3000) return { error: 'Terlalu banyak baris (maks. 3000).' };
+  const seen = {}, vals = [];
+  const int = v => { const n = Number(v); return Number.isFinite(n) && n >= 0 && n <= 1e6 && Math.floor(n) === n ? n : NaN; };
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i] || {}, k = String(r.k || '').trim().toUpperCase().slice(0, 60), ds = String(r.d || '').trim().toUpperCase().slice(0, 60);
+    const l = int(r.l), p = int(r.p), t = r.t === '' || r.t == null ? l + p : int(r.t);
+    if (!k || !ds) return { error: 'Baris ' + (i + 1) + ': kecamatan atau desa kosong.' };
+    if ([l, p, t].some(isNaN)) return { error: 'Baris ' + (i + 1) + ' (' + ds + '): angka DPT tidak valid.' };
+    const key = dk_(k, ds);
+    if (seen[key]) return { error: 'Desa ' + ds + ' (Kec. ' + k + ') muncul dua kali.' };
+    seen[key] = 1;
+    vals.push([k, ds, l, p, t]);
+  }
+  const ss = db_(), sh = ss.getSheetByName(SH.DPT) || ss.insertSheet(SH.DPT);
+  const old = sh.getLastRow() > 1 ? rows_(sh).length : 0;
+  sh.clearContents();
+  sh.getRange(1, 1, 1, HEAD.DPT.length).setValues([HEAD.DPT]);
+  sh.getRange(2, 1, vals.length, HEAD.DPT.length).setValues(vals);
+  const sp = PropertiesService.getScriptProperties(), now = Date.now();
+  sp.setProperty('DPT_AT', String(now));
+  sp.setProperty('DPT_SRC', String(d.sumber || 'Data DPT Pilkades Serentak 2026').replace(/[<>]/g, '').slice(0, 120));
+  CacheService.getScriptCache().remove('dpt');
+  const tot = vals.reduce((a, r) => a + r[4], 0);
+  log_([[new Date(), 'DPT', '', '', '', '', old ? old + ' desa' : '', vals.length + ' desa, total ' + tot, who_(me)]]);
+  return { ok: true, dpt: dptGet_(), info: 'Data DPT tersimpan: ' + vals.length + ' desa, total ' + tot.toLocaleString('id-ID') + ' pemilih.' };
 }
